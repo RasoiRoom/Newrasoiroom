@@ -13,11 +13,19 @@ handlebars.registerHelper('formatDate', function(date) {
     });
 });
 
-// Helper for formatting time in HH:mm format
+// Helper for formatting time in 12-hour format with AM/PM
 handlebars.registerHelper('formatTime', function(time) {
     if (!time) return '';
     
     try {
+        // If already in HH:MM:SS format (from IST conversion), convert to 12-hour format
+        if (time.match(/^\d{2}:\d{2}:\d{2}$/)) {
+            const [hours, minutes, seconds] = time.split(':').map(Number);
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12; // Convert 0 to 12, keep others as is
+            return `${String(displayHours).padStart(2, '0')}:${minutes} ${period}`;
+        }
+        
         // If it's a full datetime string, extract just the time part
         if (time.includes('T')) {
             time = time.split('T')[1];
@@ -32,19 +40,26 @@ handlebars.registerHelper('formatTime', function(time) {
         const timeMatch = time.match(/(\d{1,2}):(\d{2})/);
         if (timeMatch) {
             const [, hours, minutes] = timeMatch;
-            // Format as HH:mm
-            return `${hours.padStart(2, '0')}:${minutes}`;
+            const hoursNum = parseInt(hours);
+            const period = hoursNum >= 12 ? 'PM' : 'AM';
+            const displayHours = hoursNum % 12 || 12;
+            return `${String(displayHours).padStart(2, '0')}:${minutes} ${period}`;
         }
         
-        return '00:00'; // fallback for invalid formats
+        return '00:00 AM'; // fallback for invalid formats
     } catch (e) {
-        return '00:00'; // fallback for any errors
+        return '00:00 AM'; // fallback for any errors
     }
 });
 
 // Helper for getting array length
 handlebars.registerHelper('length', function(arr) {
     return arr ? arr.length : 0;
+});
+
+// Helper for equality comparison
+handlebars.registerHelper('eq', function(value1, value2) {
+    return value1 == value2;
 });
 
 // Helper for addition (used for Pax calculation)

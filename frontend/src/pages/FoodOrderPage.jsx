@@ -343,10 +343,10 @@ const FoodOrderPage = () => {
         <style>
           @media print {
             @page { 
-              margin: 0; 
-              size: 80mm auto;
+              margin: 10mm; 
+              size: A4;
             }
-            body { margin: 0; padding: 0; }
+            body { margin: 0; padding: 10mm; }
           }
           * {
             margin: 0;
@@ -355,8 +355,8 @@ const FoodOrderPage = () => {
           }
           body {
             font-family: 'Courier New', Courier, monospace;
-            width: 80mm;
-            margin: 0;
+            max-width: 100%;
+            margin: 0 25px;
             padding: 8px;
             font-size: 11px;
             line-height: 1.4;
@@ -366,6 +366,7 @@ const FoodOrderPage = () => {
             border-bottom: 2px dashed #000;
             padding-bottom: 8px;
             margin-bottom: 8px;
+            word-wrap: break-word;
           }
           .header h1 {
             margin: 0;
@@ -387,7 +388,7 @@ const FoodOrderPage = () => {
             font-size: 12px;
           }
           .info {
-            margin: 8px 0;
+            margin: 8px 5px;
             border-bottom: 1px dashed #000;
             padding-bottom: 8px;
           }
@@ -396,9 +397,12 @@ const FoodOrderPage = () => {
             justify-content: space-between;
             margin: 2px 0;
             font-size: 11px;
+            word-wrap: break-word;
           }
           .info-label {
             font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 8px;
           }
           .room-highlight {
             font-size: 18px;
@@ -421,10 +425,13 @@ const FoodOrderPage = () => {
             align-items: flex-start;
             padding: 6px 0;
             border-bottom: 1px dotted #ccc;
+            word-wrap: break-word;
           }
           .item-details {
             flex: 1;
             padding-right: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
           }
           .item-name {
             font-weight: bold;
@@ -439,7 +446,8 @@ const FoodOrderPage = () => {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            min-width: 80px;
+            margin-left: 8px;
+            flex-shrink: 0;
           }
           .item-qty {
             font-weight: bold;
@@ -460,6 +468,7 @@ const FoodOrderPage = () => {
             justify-content: space-between;
             margin: 4px 0;
             font-size: 12px;
+            word-wrap: break-word;
           }
           .total-row.grand {
             font-size: 14px;
@@ -622,10 +631,10 @@ const FoodOrderPage = () => {
         <style>
           @media print {
             @page { 
-              margin: 0; 
-              size: 80mm auto;
+              margin: 10mm; 
+              size: A4;
             }
-            body { margin: 0; padding: 0; }
+            body { margin: 0; padding: 10mm; }
           }
           * {
             margin: 0;
@@ -634,8 +643,8 @@ const FoodOrderPage = () => {
           }
           body {
             font-family: 'Courier New', Courier, monospace;
-            width: 80mm;
-            margin: 0;
+            max-width: 100%;
+            margin: 0 25px;
             padding: 8px;
             font-size: 11px;
             line-height: 1.4;
@@ -645,6 +654,7 @@ const FoodOrderPage = () => {
             border-bottom: 2px dashed #000;
             padding-bottom: 8px;
             margin-bottom: 8px;
+            word-wrap: break-word;
           }
           .header h1 {
             margin: 0;
@@ -666,7 +676,7 @@ const FoodOrderPage = () => {
             font-size: 12px;
           }
           .info {
-            margin: 8px 0;
+            margin: 8px 5px;
             border-bottom: 1px dashed #000;
             padding-bottom: 8px;
           }
@@ -675,9 +685,12 @@ const FoodOrderPage = () => {
             justify-content: space-between;
             margin: 2px 0;
             font-size: 11px;
+            word-wrap: break-word;
           }
           .info-label {
             font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 8px;
           }
           .room-highlight {
             font-size: 18px;
@@ -700,10 +713,13 @@ const FoodOrderPage = () => {
             align-items: flex-start;
             padding: 6px 0;
             border-bottom: 1px dotted #ccc;
+            word-wrap: break-word;
           }
           .item-details {
             flex: 1;
             padding-right: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
           }
           .item-name {
             font-weight: bold;
@@ -718,7 +734,8 @@ const FoodOrderPage = () => {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            min-width: 80px;
+            margin-left: 8px;
+            flex-shrink: 0;
           }
           .item-qty {
             font-weight: bold;
@@ -942,10 +959,10 @@ const FoodOrderPage = () => {
         <style>
           @media print {
             @page { 
-              margin: 0; 
-              size: 80mm auto;
+              margin: 10mm; 
+              size: A4;
             }
-            body { margin: 0; padding: 0; }
+            body { margin: 0; padding: 10mm; }
           }
           * {
             margin: 0;
@@ -955,9 +972,9 @@ const FoodOrderPage = () => {
           }
           body {
             font-family: 'Courier New', monospace;
-            width: 72mm;
-            margin: 0;
-            padding: 4px;
+            max-width: 100%;
+            margin: 0 25px;
+            padding: 8px;
             font-size: 11px;
             line-height: 1.4;
           }
@@ -966,6 +983,7 @@ const FoodOrderPage = () => {
             border-bottom: 2px dashed #000;
             padding-bottom: 8px;
             margin-bottom: 8px;
+            word-wrap: break-word;
           }
           .header h1 {
             margin: 0;
@@ -988,7 +1006,7 @@ const FoodOrderPage = () => {
             border-radius: 3px;
           }
           .info {
-            margin: 8px 0;
+            margin: 8px 5px;
             border-bottom: 1px dashed #000;
             padding-bottom: 8px;
           }
@@ -997,9 +1015,12 @@ const FoodOrderPage = () => {
             justify-content: space-between;
             margin: 2px 0;
             font-size: 11px;
+            word-wrap: break-word;
           }
           .info-label {
             font-weight: bold;
+            flex-shrink: 0;
+            margin-right: 8px;
           }
           .room-highlight {
             font-size: 18px;
@@ -1022,10 +1043,13 @@ const FoodOrderPage = () => {
             align-items: flex-start;
             padding: 6px 0;
             border-bottom: 1px dotted #ccc;
+            word-wrap: break-word;
           }
           .item-details {
             flex: 1;
             padding-right: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
           }
           .item-name {
             font-weight: bold;
@@ -1040,7 +1064,8 @@ const FoodOrderPage = () => {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            min-width: 80px;
+            margin-left: 8px;
+            flex-shrink: 0;
           }
           .item-qty {
             font-weight: bold;
@@ -1061,6 +1086,7 @@ const FoodOrderPage = () => {
             justify-content: space-between;
             margin: 4px 0;
             font-size: 12px;
+            word-wrap: break-word;
           }
           .total-row.grand {
             font-size: 14px;

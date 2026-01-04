@@ -183,6 +183,8 @@ const addRoom = async (req, res) => {
         const { room_number, room_type, price_per_night, capacity } = req.body;
         const user_id = req.user.user_id;
 
+        
+
         // Validate capacity
         if (!capacity || capacity < 1) {
             return res.status(400).json({ message: 'Room capacity must be at least 1' });

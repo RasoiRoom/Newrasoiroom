@@ -1,5 +1,82 @@
 const supabase = require('../config/db');
 
+// Helper function to convert UTC time to IST (Indian Standard Time) and format as HH:MM:SS
+function convertUTCToISTTime(utcTime) {
+    if (!utcTime) return null;
+    try {
+        console.log(`\n=== TIME CONVERSION DEBUG ===`);
+        console.log(`Input time value:`, utcTime);
+        console.log(`Input time type:`, typeof utcTime);
+        
+        // Handle different timestamp formats
+        let dateObj;
+        
+        if (typeof utcTime === 'string') {
+            let timeString = utcTime;
+            
+            // If it's in format "2026-01-04 12:46:08.88" (with space, no T)
+            if (timeString.includes(' ') && !timeString.includes('T')) {
+                timeString = timeString.replace(' ', 'T');
+            }
+            
+            // Ensure it ends with Z to explicitly mark as UTC
+            if (!timeString.endsWith('Z')) {
+                timeString = timeString + 'Z';
+            }
+            
+            console.log(`Normalized to ISO UTC format:`, timeString);
+            dateObj = new Date(timeString);
+        } else {
+            dateObj = new Date(utcTime);
+        }
+        
+        console.log(`Parsed as UTC Date object:`, dateObj.toISOString());
+        
+        // Verify it's a valid date
+        if (isNaN(dateObj.getTime())) {
+            console.error(`Invalid date after parsing`);
+            return utcTime;
+        }
+        
+        // Convert to IST by adding 5.5 hours (5 hours 30 minutes)
+        const istDate = new Date(dateObj.getTime() + (5.5 * 60 * 60 * 1000));
+        console.log(`After adding 5.5 hours (IST):`, istDate.toISOString());
+        
+        // Extract hours, minutes, seconds from the adjusted time
+        const hours = String(istDate.getUTCHours()).padStart(2, '0');
+        const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+        const seconds = String(istDate.getUTCSeconds()).padStart(2, '0');
+        
+        const formattedTime = `${hours}:${minutes}:${seconds}`;
+        console.log(`Final IST Time: ${formattedTime}`);
+        console.log(`=== END CONVERSION ===\n`);
+        
+        return formattedTime;
+    } catch (error) {
+        console.error('Error converting time to IST:', error);
+        return utcTime;
+    }
+}
+
+// Helper function to get formatted departure date (today if checkout is after today, else checkout date)
+function getFormattedDepartureDate(checkoutDate) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    const checkout = new Date(checkoutDate);
+    checkout.setHours(0, 0, 0, 0); // Reset time to start of day
+    
+    // If checkout date is today or earlier, show checkout date
+    // If checkout date is later, show today
+    const departureDate = checkout <= today ? checkout : today;
+    
+    return departureDate.toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit'
+    });
+}
+
 // Test helper function to get a valid booking for invoice testing
 async function getTestBookingId(user_id) {
     try {
@@ -1213,6 +1290,11 @@ async function getInvoiceDetails(req, res) {
         const invoiceData = {
             // Invoice details
             booking_id: booking.booking_id,
+            invoice_date: new Date().toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: '2-digit'
+            }),
             created_at: booking.created_at,
             
             // Hotel details
@@ -1232,8 +1314,20 @@ async function getInvoiceDetails(req, res) {
             booking: {
                 check_in_date: booking.checkin_date,
                 check_out_date: booking.checkout_date,
-                checkin_time: booking.checkin_time,
-                checkout_time: booking.checkout_time,
+                status: booking.status,
+                checkin_time: convertUTCToISTTime(booking.checkin_time),
+                checkout_time: convertUTCToISTTime(booking.checkout_time),
+                // Calculate departure date based on booking status and checkout date
+                departure_date: booking.status?.toLowerCase() === 'upcoming' 
+                    ? null  // Will show "Booked until [checkout_date]" in template
+                    : getFormattedDepartureDate(booking.checkout_date),
+                booked_until_date: booking.status?.toLowerCase() === 'upcoming'
+                    ? new Date(booking.checkout_date).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: '2-digit'
+                    })
+                    : null,
                 total_nights: booking.nights,
                 total_amount: booking.total_amount,
                 amount_paid: booking.amount_paid,
@@ -1285,6 +1379,7 @@ async function getInvoiceDetails(req, res) {
                     
                     return roomData;
                 })
+             
             },
             
             // Customer & Guest details
@@ -1308,8 +1403,12 @@ async function getInvoiceDetails(req, res) {
                 additional: additionalGuests
             }
         };
-
+ 
+        console.log('Invoice Data Times - checkin_time:', invoiceData.booking.checkin_time);
+        console.log('Invoice Data Times - checkout_time:', invoiceData.booking.checkout_time);
         res.json(invoiceData);
+        
+
     } catch (error) {
         // console.error('Error fetching invoice details:', error);
         res.status(500).json({ error: 'Failed to fetch invoice details' });

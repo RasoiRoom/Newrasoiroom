@@ -255,11 +255,15 @@
                 <div class="section-title">Invoice Details:</div>
                 <div class="details-text">
                     Invoice No: INV-{{booking_id}}<br>
-                    Date: {{formatDate booking.check_out_date}}<br>
+                    Date: {{invoice_date}}<br>
                     Booking ID: {{booking_id}}<br>
                     Total Nights: {{booking.total_nights}}<br>
                     Pax: {{calculatePax guests}}<br>
-                    Dep Date: {{formatDate booking.check_out_date}}<br>
+                    {{#if (eq booking.status "Upcoming")}}
+                    Booked Until: {{booking.booked_until_date}}<br>
+                    {{else}}
+                    Dep Date: {{booking.departure_date}}<br>
+                    {{/if}}
                     Dep Time: {{formatTime booking.checkout_time}}<br>
                     
                 </div>

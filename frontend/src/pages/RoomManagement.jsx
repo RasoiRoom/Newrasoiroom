@@ -164,7 +164,7 @@ const RoomManagement = () => {
       setShowAddModal(false);
       setFormData({
         room_number: '',
-        room_type: 'standard',
+        room_type: 'Club',
         price_per_night: '',
         status: 'Available'
       });
@@ -514,11 +514,11 @@ const RoomManagement = () => {
             onChange={(e) => setFilters({...filters, roomType: e.target.value})}
           >
             <option value="all">All Types</option>
-            <optgroup label="Standard Rooms">
-              <option value="AC_SINGLE">AC Single Room</option>
-              <option value="AC_DOUBLE">AC Double Room</option>
-              <option value="NONAC_SINGLE">Non-AC Single Room</option>
-              <option value="NONAC_DOUBLE">Non-AC Double Room</option>
+            <optgroup label="Club Rooms">
+              <option value="CLUB_AC_SINGLE">Club AC Single Room</option>
+              <option value="CLUB_AC_DOUBLE">Club AC Double Room</option>
+              <option value="CLUB_NONAC_SINGLE">Club Non-AC Single Room</option>
+              <option value="CLUB_NONAC_DOUBLE">Club Non-AC Double Room</option>
               {/* <option value="SINGLE_OCCUPANCY">Single Occupancy Room</option>
               <option value="CLUB_DOUBLE_OCCUPANCY">Club Double Occupancy Room</option> */}
 
@@ -646,11 +646,11 @@ const RoomManagement = () => {
                   required
                 >
                   <option value="">-- Select Room Type --</option>
-                  <optgroup label="Standard Rooms">
-                    <option value="AC_SINGLE">AC Single Room</option>
-                    <option value="AC_DOUBLE">AC Double Room</option>
-                    <option value="NONAC_SINGLE">Non-AC Single Room</option>
-                    <option value="NONAC_DOUBLE">Non-AC Double Room</option>
+                  <optgroup label="Club Rooms">
+                    <option value="CLUB_AC_SINGLE">Club AC Single Room</option>
+                    <option value="CLUB_AC_DOUBLE">Club AC Double Room</option>
+                    <option value="CLUB_NONAC_SINGLE">Club Non-AC Single Room</option>
+                    <option value="CLUB_NONAC_DOUBLE">Club Non-AC Double Room</option>
                   </optgroup>
                   <optgroup label="Deluxe Rooms">
                     <option value="DELUXE_AC_SINGLE">Deluxe AC Single Room</option>
