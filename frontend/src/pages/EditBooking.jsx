@@ -2351,7 +2351,7 @@ const EditBooking = () => {
                                             <div className="existing-room-info">
                                                 <span className="room-type">{room.roomType.replace(/_/g, ' ')}</span>
                                                 <span className="room-number">Room #{room.roomNumber}</span>
-                                                <span className="room-price">₹{room.price_per_night}/night</span>
+                                                {/* <span className="room-price">₹{room.price_per_night}/night</span> */}
                                             </div>
                                         ) : (
                                             <>
@@ -2363,7 +2363,8 @@ const EditBooking = () => {
                                                     <option value="">Select Room Type</option>
                                                     {roomTypes.map(type => (
                                                         <option key={type.id} value={type.id}>
-                                                            {type.name.replace(/_/g, ' ')} - ₹{type.base_price}/night
+                                                            {type.name.replace(/_/g, ' ')} 
+                                                            {/* - ₹{type.base_price}/night */}
                                                         </option>
                                                     ))}
                                                 </select>
@@ -2387,7 +2388,8 @@ const EditBooking = () => {
                                     {room.isExistingRoom ? (
                                         <div className="existing-room-number">
                                             Room {room.roomNumber}
-                                            <span className="room-price">₹{room.price_per_night}/night</span>
+                                            {/* <span className="room-price">
+                                                ₹{room.price_per_night}/night</span> */}
                                         </div>
                                     ) : (
                                         <div className="new-room-selection">
@@ -2434,7 +2436,8 @@ const EditBooking = () => {
                                                 ) : (
                                                     availableRooms[index].map(availableRoom => (
                                                         <option key={availableRoom.room_id} value={availableRoom.room_id}>
-                                                            Room {availableRoom.room_number} - ₹{availableRoom.price_per_night}/night
+                                                            Room {availableRoom.room_number} 
+                                                            {/* - ₹{availableRoom.price_per_night}/night */}
                                                         </option>
                                                     ))
                                                 )}

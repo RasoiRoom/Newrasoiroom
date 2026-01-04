@@ -895,7 +895,8 @@ const BookingForm = () => {
                     <option value="">Select room type</option>
                     {roomTypes.map((type) => (
                       <option key={type.id} value={type.name}>
-                        {type.name} - ₹{type.base_price}/night
+                        {type.name} 
+                        {/* - ₹{type.base_price}/night */}
                       </option>
                     ))}
                   </select>
@@ -928,16 +929,17 @@ const BookingForm = () => {
                             <option value="">Select room number</option>
                             {availableRooms[index].map(room => (
                               <option key={room.room_id} value={room.room_id}>
-                                Room {room.room_number} - ₹{room.price_per_night} per night
+                                Room {room.room_number} 
+                                {/* - ₹{room.price_per_night} per night */}
                               </option>
                             ))}
                           </select>
                           {formData.roomSelections[index]?.roomId && (
                             <div className="selected-room-price">
-                              <p>Room Rate: ₹{formData.roomSelections[index].price_per_night} per night</p>
+                              {/* <p>Room Rate: ₹{formData.roomSelections[index].price_per_night} per night</p> */}
                                 
                               
-                              <p>Stay Duration: {formData.roomSelections[index].nights} nights</p>
+                              {/* <p>Stay Duration: {formData.roomSelections[index].nights} nights</p> */}
                               <p className="room-total">Room Total: ₹{formData.roomSelections[index].total_price}</p>
                               <button
                                 type="button"
@@ -1436,14 +1438,14 @@ const BookingForm = () => {
             <div className="booking-summary">
               <h3>Booking Summary</h3>
               <div className="summary-details">
-                {formData.roomSelections.map((selection, index) => 
+                {/* {formData.roomSelections.map((selection, index) => 
                   selection.roomId && availableRooms[index] && (
                     <div key={index} className="summary-item">
                       <span>Room {availableRooms[index].find(r => r.room_id === selection.roomId)?.room_number} Rate:</span>
                       <span>₹{availableRooms[index].find(r => r.room_id === selection.roomId)?.price_per_night || 0}/night</span>
                     </div>
                   )
-                )}
+                )} */}
                 <div className="summary-item">
                   <span>Number of Nights:</span>
                   <span>
