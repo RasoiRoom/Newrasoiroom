@@ -943,7 +943,7 @@ const FoodOrderPage = () => {
           @media print {
             @page { 
               margin: 0; 
-              size: 77mm auto;
+              size: 80mm auto;
             }
             body { margin: 0; padding: 0; }
           }
@@ -951,12 +951,13 @@ const FoodOrderPage = () => {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            word-break: break-word;
           }
           body {
-            font-family: 'Courier New', Courier, monospace;
-            width: 80mm;
+            font-family: 'Courier New', monospace;
+            width: 72mm;
             margin: 0;
-            padding: 8px;
+            padding: 4px;
             font-size: 11px;
             line-height: 1.4;
           }
@@ -1513,10 +1514,65 @@ const FoodOrderPage = () => {
                 {booking?.status}
               </span>
             </div>
+            
+            {/* KOT Status - Only if order exists */}
+            {existingOrder && (
+              <>
+                <div className="info-group">
+                  <span className="info-label">Order Status</span>
+                  <span className={`status-badge ${orderStatus?.toLowerCase()}`}>
+                    {orderStatus?.charAt(0).toUpperCase() + orderStatus?.slice(1)}
+                  </span>
+                </div>
+                
+                <div className="info-group" style={{ gridColumn: '1 / -1' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    {orderStatus === 'pending' ? (
+                      <button
+                        className="mark-delivered-btn"
+                        onClick={() => handleStatusChange('delivered')}
+                        disabled={statusUpdating}
+                        style={{ flex: 1, minWidth: '80px', padding: '8px 10px', fontSize: '11px' }}
+                      >
+                        {statusUpdating ? 'Updating...' : '✓ Delivered'}
+                      </button>
+                    ) : (
+                      <button
+                        className="mark-pending-btn"
+                        onClick={() => handleStatusChange('pending')}
+                        disabled={statusUpdating}
+                        style={{ flex: 1, minWidth: '80px', padding: '8px 10px', fontSize: '11px' }}
+                      >
+                        {statusUpdating ? 'Updating...' : '← Pending'}
+                      </button>
+                    )}
+                    
+                    <button
+                      className="print-kot-btn"
+                      onClick={handlePrintKOT}
+                      disabled={printingKOT}
+                      style={{ flex: 1, minWidth: '80px', padding: '8px 10px', fontSize: '11px' }}
+                    >
+                      {printingKOT ? '...' : '🖨️ Print'}
+                    </button>
+
+                    {kotHistory && kotHistory.length > 0 && (
+                      <button
+                        className="history-btn"
+                        onClick={() => setShowHistory(!showHistory)}
+                        style={{ flex: 1, minWidth: '80px', padding: '8px 10px', fontSize: '11px' }}
+                      >
+                        📋 History
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Order Status Section - Only show if order exists */}
-          {existingOrder && (
+          {false && existingOrder && (
             <div className="order-status-card">
               <div className="status-header">
                 <h3>Food Order Status & KOT</h3>
@@ -1570,7 +1626,7 @@ const FoodOrderPage = () => {
           )}
 
           {/* KOT History Button - Show even if no existing order */}
-          {!existingOrder && kotHistory && kotHistory.length > 0 && (
+          {false && !existingOrder && kotHistory && kotHistory.length > 0 && (
             <div className="order-status-card">
               <div className="status-header">
                 <h3>📋 KOT History</h3>
@@ -1606,21 +1662,18 @@ const FoodOrderPage = () => {
               </div>
               
               <div className="category-filters">
-                <button
-                  className={`category-btn ${selectedCategory === 'all' ? 'active' : ''}`}
-                  onClick={() => setSelectedCategory('all')}
+                {/* Category select for quick selection */}
+                <select
+                  className="category-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  aria-label="Select category"
                 >
-                  All Items
-                </button>
-                {getCategories().map((category) => (
-                  <button
-                    key={category}
-                    className={`category-btn ${selectedCategory === category ? 'active' : ''}`}
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </button>
-                ))}
+                  <option value="all">All Items</option>
+                  {getCategories().map((category) => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -1716,7 +1769,7 @@ const FoodOrderPage = () => {
                       <div className="selected-items-list">
                         {newAdditionItems.map((item) => (
                           <div key={`${item.menu_item_id}-${item.id || 'new'}`} className="order-item new-item">
-                            <div className="new-badge">NEW</div>
+                            {/* <div className="new-badge">NEW</div> */}
                             <div className="item-info">
                               <h4>{item.name}</h4>
                               <p className="item-price">₹{item.price}</p>
