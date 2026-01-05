@@ -125,13 +125,14 @@ const createOrder = async (req, res) => {
       return res.status(500).json({ error: 'Failed to add items', details: insertError.message });
     }
 
-    // Update order total - amount_due equals total initially
+    // Update order total with 5% GST included - amount_due equals total initially
     // Payment will be recorded separately via payment transaction API which will update amount_paid
+    const totalWithGST = totalAmount * 1.05; // Add 5% GST
     const { data: updatedOrder, error: updateError } = await supabase
       .from('food_orders')
       .update({ 
-        total_amount: totalAmount,
-        amount_due: totalAmount
+        total_amount: totalWithGST,
+        amount_due: totalWithGST
       })
       .eq('id', orderId)
       .select();
@@ -183,7 +184,7 @@ const createOrder = async (req, res) => {
       console.error('Warning: Could not create KOT history entry:', kotError);
       // Don't fail the order creation if KOT history fails
     } else {
-      console.log('✅ Initial KOT history created:', kotEntry?.[0]?.id);
+      // console.log('✅ Initial KOT history created:', kotEntry?.[0]?.id);
     }
 
     // console.log('💰 Order total set:', { orderId, total_amount: totalAmount, amount_paid: 0, amount_due: totalAmount });
@@ -427,23 +428,40 @@ const updateOrder = async (req, res) => {
       }
     }
 
+    // Calculate FULL order total: existing items (with remaining qty) + new items
+    // Get all items in order (both existing and newly inserted)
+    const { data: allOrderItems, error: allItemsError } = await supabase
+      .from('food_order_items')
+      .select('quantity, voided_quantity, price')
+      .eq('order_id', orderId);
+    
+    let fullOrderTotal = 0;
+    if (allOrderItems && allOrderItems.length > 0) {
+      const baseTotal = allOrderItems.reduce((sum, item) => {
+        const remaining = (item.quantity || 0) - (item.voided_quantity || 0);
+        return sum + ((item.price || 0) * Math.max(0, remaining));
+      }, 0);
+      // Apply 5% GST to full order total
+      fullOrderTotal = baseTotal * 1.05;
+    }
+
     // Update order total and recalculate amount_due based on existing payments
     // Preserve the existing amount_paid as payments are tracked separately
     const currentAmountPaid = order.amount_paid || 0;
-    const finalAmountDue = Math.max(0, totalAmount - currentAmountPaid);
+    const finalAmountDue = Math.max(0, fullOrderTotal - currentAmountPaid);
     await supabase
       .from('food_orders')
       .update({ 
-        total_amount: totalAmount,
+        total_amount: fullOrderTotal,
         amount_due: finalAmountDue
       })
       .eq('id', orderId);
 
     // Create KOT history entry if new items were added (additions)
     if (itemsToInsert.length > 0) {
-      console.log('🔍 itemsToInsert count:', itemsToInsert.length);
+      // console.log('🔍 itemsToInsert count:', itemsToInsert.length);
       itemsToInsert.forEach((item, idx) => {
-        console.log(`  [${idx}] menu_item_id=${item.menu_item_id}, qty=${item.quantity}`);
+        // console.log(`  [${idx}] menu_item_id=${item.menu_item_id}, qty=${item.quantity}`);
       });
 
       // Fetch menu item details to get names for the new items
@@ -463,9 +481,9 @@ const updateOrder = async (req, res) => {
         });
       }
 
-      console.log('💾 enrichedNewItems count:', enrichedNewItems.length);
+      // console.log('💾 enrichedNewItems count:', enrichedNewItems.length);
       enrichedNewItems.forEach((item, idx) => {
-        console.log(`  [${idx}] ${item.name} (x${item.quantity})`);
+        // console.log(`  [${idx}] ${item.name} (x${item.quantity})`);
       });
 
       let userId = req.user.user_id || req.user.id;
@@ -477,7 +495,7 @@ const updateOrder = async (req, res) => {
         user_id: userIdInt,
         kot_type: 'additions',
         total_items: enrichedNewItems.length,
-        total_amount: totalAmount,
+        total_amount: fullOrderTotal,
         amount_paid: currentAmountPaid,
         amount_due: finalAmountDue,
         items_snapshot: null,
@@ -494,17 +512,17 @@ const updateOrder = async (req, res) => {
         console.error('Warning: Could not create KOT history entry for additions:', kotError);
         // Don't fail the update if KOT history fails
       } else {
-        console.log('✅ Additions KOT history created:', kotEntry?.[0]?.id);
-        console.log('   Items in this KOT:', enrichedNewItems.map(i => `${i.name} (x${i.quantity})`).join(', '));
+        // console.log('✅ Additions KOT history created:', kotEntry?.[0]?.id);
+        // console.log('   Items in this KOT:', enrichedNewItems.map(i => `${i.name} (x${i.quantity})`).join(', '));
       }
     }
 
     // console.log('💰 Order total updated:', { orderId, total_amount: totalAmount, amount_paid: currentAmountPaid, amount_due: finalAmountDue });
 
-    // Get updated order with items
+    // Get updated order with items (include voided columns)
     const { data: updatedItems } = await supabase
       .from('food_order_items')
-      .select('*')
+      .select('id, menu_item_id, quantity, voided_quantity, voided_at, voided_reason, price')
       .eq('order_id', orderId);
 
     // console.log('\n' + '='.repeat(70));
@@ -517,14 +535,14 @@ const updateOrder = async (req, res) => {
     // console.log('Total Items in Order:', updatedItems?.length || 0);
     
     updatedItems?.forEach((item, idx) => {
-      console.log(`  ${idx + 1}. Item ID: ${item.id} | Menu Item: ${item.menu_item_id} | Qty: ${item.quantity} | Price: ₹${item.price}`);
+      // console.log(`  ${idx + 1}. Item ID: ${item.id} | Menu Item: ${item.menu_item_id} | Qty: ${item.quantity} | Price: ₹${item.price}`);
     });
     
     // console.log('='.repeat(70) + '\n');
 
     res.json({ 
       message: 'Order updated', 
-      order: { ...order, total_amount: totalAmount, amount_paid: currentAmountPaid, amount_due: finalAmountDue }, 
+      order: { ...order, total_amount: fullOrderTotal, amount_paid: currentAmountPaid, amount_due: finalAmountDue }, 
       items: updatedItems,
       newItems: itemsToInsert,  // Return newly added items for KOT printing
       newItemsCount: itemsToInsert.length
@@ -568,7 +586,7 @@ const getOrderDetails = async (req, res) => {
     const orderId = order[0].id;
     // console.log('✅ Order found:', orderId);
 
-    // Get order items
+    // Get order items - all items, we'll calculate remaining quantity in UI
     const { data: items, error: itemsError } = await supabase
       .from('food_order_items')
       .select('*')
@@ -579,8 +597,15 @@ const getOrderDetails = async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch items' });
     }
 
-    // console.log('📦 Order has', items?.length || 0, 'items');
-    res.json({ exists: true, order: order[0], items: items || [] });
+    // Map items to include remaining_quantity for UI display
+    // Include ALL items (even fully voided ones) so UI can display cancellation info
+    const itemsWithRemaining = (items || []).map(item => ({
+      ...item,
+      remaining_quantity: (item.quantity || 0) - (item.voided_quantity || 0)
+    }));
+
+    // console.log('📦 Order has', itemsWithRemaining?.length || 0, 'items');
+    res.json({ exists: true, order: order[0], items: itemsWithRemaining || [] });
   } catch (err) {
     console.error('❌ Error in getOrderDetails:', err);
     res.status(500).json({ error: 'Failed to get order details', details: err.message });
@@ -790,7 +815,7 @@ const getKOTHistory = async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch KOT history', details: historyError.message });
     }
 
-    console.log(`📋 KOT history for booking ${bookingId}: Found ${kotHistory?.length || 0} records`);
+    // console.log(`📋 KOT history for booking ${bookingId}: Found ${kotHistory?.length || 0} records`);
 
     // Don't filter duplicates - show ALL KOT records
     const uniqueKOTs = kotHistory || [];
@@ -851,6 +876,138 @@ const getKOTHistory = async (req, res) => {
   }
 };
 
+// CANCEL ITEM - Mark single item as voided instead of deleting
+const cancelItem = async (req, res) => {
+  try {
+    const { orderId, itemId } = req.params;
+    const { reason, quantity } = req.body;
+
+    // console.log('🔴 cancelItem called');
+    // console.log('   orderId:', orderId);
+    // console.log('   itemId:', itemId);
+    // console.log('   quantity:', quantity);
+
+    if (!orderId || !itemId) {
+      console.error('❌ Missing orderId or itemId');
+      return res.status(400).json({ error: 'Order ID and Item ID are required' });
+    }
+
+    // Verify order exists
+    const { data: order, error: orderError } = await supabase
+      .from('food_orders')
+      .select('*')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      console.error('Order not found:', orderError);
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    // Verify item exists and belongs to this order
+    const { data: item, error: itemError } = await supabase
+      .from('food_order_items')
+      .select('*')
+      .eq('id', itemId)
+      .eq('order_id', orderId)
+      .single();
+
+    if (itemError || !item) {
+      console.error('Item not found:', itemError);
+      return res.status(404).json({ error: 'Item not found in this order' });
+    }
+
+    // Check if item is already fully voided
+    const currentVoidedQty = item.voided_quantity || 0;
+    const remainingQty = item.quantity - currentVoidedQty;
+
+    // console.log('📊 Cancellation Details:');
+    // console.log('   Original Qty:', item.quantity);
+    // console.log('   Already Voided:', currentVoidedQty);
+    // console.log('   Currently Available:', remainingQty);
+    // console.log('   Requesting to Cancel:', quantity);
+
+    // Determine quantity to void
+    const quantityToVoid = quantity || remainingQty;
+
+    // Validate quantity
+    if (quantityToVoid <= 0 || quantityToVoid > remainingQty) {
+      return res.status(400).json({ 
+        error: `Invalid quantity. Available: ${remainingQty}, Requested to cancel: ${quantityToVoid}` 
+      });
+    }
+
+    // Only update voided_quantity - don't touch quantity field
+    const voidedAtTime = new Date().toISOString();
+    const newVoidedQty = currentVoidedQty + quantityToVoid;
+    
+    // console.log('   New Voided Qty:', newVoidedQty, '(was', currentVoidedQty, 'adding', quantityToVoid, ')');
+    
+    const updateData = {
+      voided_quantity: newVoidedQty, // Add to existing voided quantity
+      voided_at: voidedAtTime,
+      voided_reason: reason || 'Customer requested cancellation'
+    };
+
+    const { data: voidedItem, error: voidError } = await supabase
+      .from('food_order_items')
+      .update(updateData)
+      .eq('id', itemId)
+      .select();
+
+    if (voidError || !voidedItem || voidedItem.length === 0) {
+      console.error('❌ Error voiding item:', voidError);
+      return res.status(500).json({ error: 'Failed to cancel item', details: voidError?.message });
+    }
+
+    // Calculate amount to subtract from order total (with 5% GST included)
+    const baseAmountToSubtract = (item.price || 0) * quantityToVoid;
+    const gstInclusiveAmountToSubtract = baseAmountToSubtract * 1.05;
+
+    // Get current order total
+    const currentTotal = order.total_amount || 0;
+    const newTotalAmount = Math.max(0, currentTotal - gstInclusiveAmountToSubtract);
+
+    // Calculate new amount due
+    const newAmountDue = Math.max(0, newTotalAmount - (order.amount_paid || 0));
+
+    // Update order totals
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('food_orders')
+      .update({
+        total_amount: newTotalAmount,
+        amount_due: newAmountDue
+      })
+      .eq('id', orderId)
+      .select();
+
+    if (updateError) {
+      console.error('❌ Error updating order totals:', updateError);
+      return res.status(500).json({ error: 'Failed to update order totals', details: updateError.message });
+    }
+
+    // console.log('✅ Item cancelled:', itemId);
+    // console.log('   Voided quantity:', quantityToVoid);
+    // console.log('   Base amount: ₹' + baseAmountToSubtract.toFixed(2));
+    // console.log('   Amount subtracted (with 5% GST): ₹' + gstInclusiveAmountToSubtract.toFixed(2));
+    // console.log('   Previous total: ₹' + currentTotal.toFixed(2));
+    // console.log('   New total: ₹' + newTotalAmount.toFixed(2));
+
+    res.json({
+      message: 'Item cancelled successfully',
+      item: voidedItem[0],
+      order: updatedOrder[0],
+      quantityVoided: quantityToVoid,
+      amountSubtracted: gstInclusiveAmountToSubtract,
+      newTotalAmount: newTotalAmount,
+      newAmountDue: newAmountDue
+    });
+  } catch (err) {
+    console.error('❌ Error in cancelItem:', err);
+    res.status(500).json({ error: 'Failed to cancel item', details: err.message });
+  }
+};
+
 module.exports = {
   createOrder,
   updateOrder,
@@ -858,5 +1015,6 @@ module.exports = {
   cancelOrder,
   checkOrderExists,
   printKOT,
-  getKOTHistory
+  getKOTHistory,
+  cancelItem
 };

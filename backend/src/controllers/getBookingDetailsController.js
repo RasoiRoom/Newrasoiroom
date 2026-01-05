@@ -73,6 +73,9 @@ const getBookingDetails = async (req, res) =>{
                     id,
                     menu_item_id,
                     quantity,
+                    voided_quantity,
+                    voided_at,
+                    voided_reason,
                     price,
                     menu_items (
                         id,
@@ -177,11 +180,15 @@ const getBookingDetails = async (req, res) =>{
                                 category: menuItemDetails?.category,
                                 description: menuItemDetails?.description,
                                 price: item.price,
-                                quantity: item.quantity
+                                quantity: item.quantity,
+                                voided_quantity: item.voided_quantity || 0,
+                                voided_at: item.voided_at,
+                                voided_reason: item.voided_reason
                             };
                         } else {
                             // Add quantity to existing item
                             itemsMap[menuItemId].quantity += item.quantity;
+                            itemsMap[menuItemId].voided_quantity += (item.voided_quantity || 0);
                         }
                     });
                     return Object.values(itemsMap);
@@ -190,7 +197,7 @@ const getBookingDetails = async (req, res) =>{
         };
 
         res.json(Data);
-        console.log(Data);
+        // console.log(Data);
     } catch (error) {
         // console.error('Error fetching invoice details:', error);
         res.status(500).json({ error: 'Failed to fetch invoice details' });

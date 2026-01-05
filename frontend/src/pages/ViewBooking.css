@@ -456,3 +456,29 @@
   font-size: 18px;
   color: #6c757d;
 }
+
+/* Voided and Remaining Quantity Styles */
+.voided-qty {
+  color: #ff6f00;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.remaining-qty {
+  color: #27ae60;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.fully-voided {
+  color: #e74c3c;
+  font-weight: 600;
+  font-style: italic;
+  font-size: 12px;
+}
+
+.items-table tr td:nth-child(5),
+.items-table tr td:nth-child(6) {
+  text-align: center;
+  font-weight: 500;
+}

@@ -89,28 +89,49 @@ handlebars.registerHelper('formatCurrency', function(amount) {
 });
 
 // Function to calculate GST amounts (5% total = 2.5% CGST + 2.5% SGST)
-// REVERSE GST: grossAmount is the TOTAL amount (WITH GST included)
-// We extract the base amount by dividing by 1.05
-function calculateGST(grossAmount) {
-    console.log('Calculating REVERSE GST for gross amount:', grossAmount);
-    
-    // Extract base amount from gross amount (divide by 1.05)
-    const baseAmount = parseFloat(grossAmount) / 1.05;
-    const gstPercent = 0.05; // 5% total GST
-    const totalGstAmount = baseAmount * gstPercent; // 5% of base
-    const cgstAmount = baseAmount * 0.025; // 2.5% CGST
-    const sgstAmount = baseAmount * 0.025; // 2.5% SGST
-    const finalTotal = parseFloat(grossAmount); // Already gross/final total
-    
-    console.log('Reverse GST calculation result:', { baseAmount: baseAmount.toFixed(2), cgstAmount: cgstAmount.toFixed(2), sgstAmount: sgstAmount.toFixed(2), totalGstAmount: totalGstAmount.toFixed(2), finalTotal: finalTotal.toFixed(2) });
-    
-    return {
-        baseAmount: baseAmount.toFixed(2),
-        cgstAmount: cgstAmount.toFixed(2),
-        sgstAmount: sgstAmount.toFixed(2),
-        totalGst: totalGstAmount.toFixed(2),
-        finalTotal: finalTotal.toFixed(2)
-    };
+// REVERSE GST: grossAmount is the TOTAL amount (WITH GST included) - divide by 1.05
+// FORWARD GST: baseAmount - multiply by 1.05 to add GST
+function calculateGST(amount, isForwardGST = false) {
+    if (isForwardGST) {
+        // Forward GST: Add 5% to base amount
+        // console.log('Calculating FORWARD GST for base amount:', amount);
+        const baseAmount = parseFloat(amount);
+        const gstPercent = 0.05; // 5% total GST
+        const cgstAmount = baseAmount * 0.025; // 2.5% CGST
+        const sgstAmount = baseAmount * 0.025; // 2.5% SGST
+        const totalGstAmount = baseAmount * gstPercent; // 5% of base
+        const finalTotal = baseAmount + totalGstAmount; // base + GST
+        
+        // console.log('Forward GST calculation result:', { baseAmount: baseAmount.toFixed(2), cgstAmount: cgstAmount.toFixed(2), sgstAmount: sgstAmount.toFixed(2), totalGstAmount: totalGstAmount.toFixed(2), finalTotal: finalTotal.toFixed(2) });
+        
+        return {
+            baseAmount: baseAmount.toFixed(2),
+            cgstAmount: cgstAmount.toFixed(2),
+            sgstAmount: sgstAmount.toFixed(2),
+            totalGst: totalGstAmount.toFixed(2),
+            finalTotal: finalTotal.toFixed(2)
+        };
+    } else {
+        // Reverse GST: Extract base from gross amount
+        // console.log('Calculating REVERSE GST for gross amount:', amount);
+        
+        const baseAmount = parseFloat(amount) / 1.05;
+        const gstPercent = 0.05; // 5% total GST
+        const totalGstAmount = baseAmount * gstPercent; // 5% of base
+        const cgstAmount = baseAmount * 0.025; // 2.5% CGST
+        const sgstAmount = baseAmount * 0.025; // 2.5% SGST
+        const finalTotal = parseFloat(amount); // Already gross/final total
+        
+        // console.log('Reverse GST calculation result:', { baseAmount: baseAmount.toFixed(2), cgstAmount: cgstAmount.toFixed(2), sgstAmount: sgstAmount.toFixed(2), totalGstAmount: totalGstAmount.toFixed(2), finalTotal: finalTotal.toFixed(2) });
+        
+        return {
+            baseAmount: baseAmount.toFixed(2),
+            cgstAmount: cgstAmount.toFixed(2),
+            sgstAmount: sgstAmount.toFixed(2),
+            totalGst: totalGstAmount.toFixed(2),
+            finalTotal: finalTotal.toFixed(2)
+        };
+    }
 }
 
 // Function to generate Food Bill PDF
@@ -126,9 +147,18 @@ async function generateFoodBillPDF(foodBillData) {
 
         const templateHtml = fs.readFileSync(templatePath, 'utf-8');
         
-        // Calculate GST for food
-        const totalAmount = parseFloat(foodBillData.foodOrder.total_amount);
-        const { baseAmount, cgstAmount, sgstAmount, totalGst, finalTotal } = calculateGST(totalAmount);
+        // Calculate total based on remaining quantities (after cancellations)
+        let recalculatedTotal = 0;
+        if (foodBillData.foodItems && Array.isArray(foodBillData.foodItems)) {
+            recalculatedTotal = foodBillData.foodItems.reduce((sum, item) => {
+                const remaining = Math.max(0, item.remaining_quantity || (item.quantity - (item.voided_quantity || 0)));
+                return sum + ((item.price || 0) * remaining);
+            }, 0);
+        }
+        
+        const totalAmount = recalculatedTotal > 0 ? recalculatedTotal : parseFloat(foodBillData.foodOrder.total_amount);
+        // Use REVERSE GST for food bill (extract GST from total, don't add extra)
+        const { baseAmount, cgstAmount, sgstAmount, totalGst, finalTotal } = calculateGST(totalAmount, false);
         
         const template = handlebars.compile(templateHtml);
         const finalHtml = template({
@@ -226,8 +256,8 @@ async function generateInvoicePDF(invoiceData, foodBillData = null) {
 
         // If food bill data exists, add food bill page
         if (foodBillData) {
-            console.log('\n🍽️ FOOD BILL DATA RECEIVED:');
-            console.log('   foodBillData.foodOrder:', foodBillData.foodOrder);
+            // console.log('\n🍽️ FOOD BILL DATA RECEIVED:');
+            // console.log('   foodBillData.foodOrder:', foodBillData.foodOrder);
             const foodTemplatePath = path.join(__dirname, 'templates', 'foodBill.html');
             
             if (fs.existsSync(foodTemplatePath)) {
@@ -235,9 +265,9 @@ async function generateInvoicePDF(invoiceData, foodBillData = null) {
                 
                 // Calculate GST for food using total_amount (original order total, not affected by payments)
                 const foodGrossAmount = parseFloat(foodBillData.foodOrder.total_amount);
-                console.log('   Food Total Amount (original order):', foodGrossAmount);
-                const foodGST = calculateGST(foodGrossAmount);
-                console.log('   Food GST Calculated:', foodGST);
+                // console.log('   Food Total Amount (original order):', foodGrossAmount);
+                const foodGST = calculateGST(foodGrossAmount, false);  // Use REVERSE GST for food bill (extract from total)
+                // console.log('   Food GST Calculated:', foodGST);
                 
                 const foodTemplate = handlebars.compile(foodTemplateHtml);
                 const foodHtml = foodTemplate({

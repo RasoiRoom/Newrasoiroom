@@ -438,11 +438,11 @@ const BookingManagement = () => {
       let errorMessage = 'Failed to fetch invoice.';
       
       if (err.response) {
-        console.log('Error response:', {
-          status: err.response.status,
-          data: err.response.data,
-          headers: err.response.headers
-        });
+        // console.log('Error response:', {
+        //   status: err.response.status,
+        //   data: err.response.data,
+        //   headers: err.response.headers
+        // });
         
         if (err.response.status === 401) {
           errorMessage = 'Session expired. Please login again.';

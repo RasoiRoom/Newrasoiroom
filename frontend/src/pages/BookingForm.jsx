@@ -217,7 +217,7 @@ const BookingForm = () => {
           total_price: response.data.pricing.totalPrice,
           nights: response.data.pricing.numberOfNights
         };
-        console.log('Updated room selection with pricing:', newSelections[roomIndex]);
+        // console.log('Updated room selection with pricing:', newSelections[roomIndex]);
       }
       
       setFormData(prev => ({

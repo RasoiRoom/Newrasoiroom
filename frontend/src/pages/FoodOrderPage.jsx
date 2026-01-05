@@ -52,6 +52,11 @@ const FoodOrderPage = () => {
   const [kotHistory, setKotHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(false);
+  
+  // Cancel modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelItemData, setCancelItemData] = useState(null);
+  const [cancelQuantity, setCancelQuantity] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +84,7 @@ const FoodOrderPage = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const responseData = bookingRes.data;
-        console.log('📋 Full Response:', responseData);
+        // console.log('📋 Full Response:', responseData);
         
         // The API returns data with booking object nested inside
         const bookingData = {
@@ -124,11 +129,16 @@ const FoodOrderPage = () => {
               const menuItem = menuRes.data.find(m => (m.item_id || m.id) === item.menu_item_id);
               const itemName = menuItem?.name || item.menu_item_id;
               
+              // Calculate remaining quantity
+              const remainingQty = (item.quantity || 0) - (item.voided_quantity || 0);
+              
               formattedItems.push({
                 menu_item_id: item.menu_item_id,
                 name: itemName,
                 price: item.price,
                 quantity: item.quantity,
+                voided_quantity: item.voided_quantity || 0,
+                remaining_quantity: remainingQty,
                 id: item.id
               });
             }
@@ -148,7 +158,7 @@ const FoodOrderPage = () => {
             `${BASE_URL}/api/food-orders/history/${bookingId}`,
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          console.log('✅ KOT History fetched:', kotRes.data?.history?.length || 0, 'records');
+          // console.log('✅ KOT History fetched:', kotRes.data?.history?.length || 0, 'records');
           setKotHistory(kotRes.data?.history || []);
         } catch (err) {
           console.warn('Could not fetch KOT history:', err.message);
@@ -256,12 +266,20 @@ const FoodOrderPage = () => {
 
   // Calculate total for existing items (locked, non-editable)
   const calculateExistingTotal = () => {
-    return initialItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const baseTotal = initialItems.reduce((sum, item) => {
+      // Use remaining quantity which is already calculated (quantity - voided_quantity)
+      const remainingQty = item.remaining_quantity || (item.quantity - (item.voided_quantity || 0));
+      return sum + (item.price * Math.max(0, remainingQty));
+    }, 0);
+    // Add 5% GST to base total
+    return baseTotal * 1.05;
   };
 
   // Calculate total ONLY for new addition items
   const calculateNewAdditionsTotal = () => {
-    return newAdditionItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const baseTotal = newAdditionItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Add 5% GST to base total
+    return baseTotal * 1.05;
   };
 
   // Calculate combined total (existing + new additions)
@@ -324,6 +342,106 @@ const FoodOrderPage = () => {
     }
   };
 
+  const handleCancelItem = async (itemId, itemName, currentQuantity, itemPrice) => {
+    if (!existingOrder) {
+      toast.error('No order found');
+      return;
+    }
+
+    // Open cancel modal
+    setCancelItemData({ id: itemId, name: itemName, quantity: currentQuantity, price: itemPrice });
+    setCancelQuantity(1); // Default to 1
+    setShowCancelModal(true);
+  };
+
+  // Confirm cancellation after user selects quantity
+  const handleConfirmCancel = async () => {
+    if (!cancelItemData || !cancelQuantity) {
+      toast.error('Please select quantity to cancel');
+      return;
+    }
+
+    const availableQty = cancelItemData.remaining_quantity || cancelItemData.quantity;
+    if (cancelQuantity <= 0 || cancelQuantity > availableQty) {
+      toast.error(`Please enter valid quantity (1-${availableQty})`);
+      return;
+    }
+
+    setShowCancelModal(false);
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      const response = await axios.patch(
+        `${BASE_URL}/api/food-orders/${existingOrder.id}/items/${cancelItemData.id}/cancel`,
+        { 
+          reason: 'Customer requested cancellation',
+          quantity: cancelQuantity
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Get updated item from response
+      const updatedItem = response.data.item;
+      const remainingQty = (updatedItem.quantity || 0) - (updatedItem.voided_quantity || 0);
+      
+      // Calculate amount cancelled (frontend)
+      const amountCancelled = cancelItemData.price * cancelQuantity;
+      
+      // Calculate new total (frontend)
+      let newTotalAmount = 0;
+      initialItems.forEach(item => {
+        if (item.id === cancelItemData.id) {
+          // Use updated voided quantity
+          const itemRemaining = (item.quantity || 0) - updatedItem.voided_quantity;
+          newTotalAmount += (item.price || 0) * Math.max(0, itemRemaining);
+        } else {
+          // Other items: use their remaining quantity
+          const itemRemaining = (item.remaining_quantity || item.quantity) - (item.voided_quantity || 0);
+          newTotalAmount += (item.price || 0) * Math.max(0, itemRemaining);
+        }
+      });
+
+      if (remainingQty > 0) {
+        // Partially cancelled - update remaining_quantity in UI
+        setInitialItems(initialItems.map(item =>
+          item.id === cancelItemData.id 
+            ? { 
+                ...item, 
+                remaining_quantity: remainingQty,
+                voided_quantity: updatedItem.voided_quantity
+              }
+            : item
+        ));
+      } else {
+        // Fully cancelled - remove item from display
+        setInitialItems(initialItems.filter(item => item.id !== cancelItemData.id));
+      }
+      
+      // Update the order total on frontend
+      const newAmountDue = Math.max(0, newTotalAmount - (existingOrder.amount_paid || 0));
+      setExistingOrder({
+        ...existingOrder,
+        total_amount: newTotalAmount,
+        amount_due: newAmountDue
+      });
+
+      // Show success toast
+      toast.success(
+        `✓ "${cancelItemData.name}" cancelled\n` +
+        `Cancelled Qty: ${cancelQuantity} | Amount: ₹${amountCancelled.toFixed(2)}\n` +
+        `New Total: ₹${newTotalAmount.toFixed(2)}`
+      );
+
+      setCancelItemData(null);
+      setCancelQuantity(1);
+    } catch (err) {
+      console.error('Error cancelling item:', err);
+      console.error('Error response:', err.response?.data);
+      toast.error(err.response?.data?.error || 'Failed to cancel item');
+    }
+  };
+
   const handlePrintKOT = () => {
     if (!existingOrder) {
       toast.error('No order to print');
@@ -332,7 +450,35 @@ const FoodOrderPage = () => {
 
     setPrintingKOT(true);
 
-    const totalAmount = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    // Calculate total based on REMAINING quantities (excluding voided)
+    const baseTotal = initialItems.reduce((sum, item) => {
+      const remaining = (item.quantity || 0) - (item.voided_quantity || 0);
+      return sum + (item.price * Math.max(0, remaining));
+    }, 0);
+
+    // Add 5% GST to total
+    const totalAmount = baseTotal * 1.05;
+    const gstAmount = totalAmount - baseTotal;
+
+    // Group items by name and show remaining quantities only
+    const groupedItems = {};
+    (initialItems || []).forEach(item => {
+      const remaining = (item.quantity || 0) - (item.voided_quantity || 0);
+      // Only include items with remaining quantity > 0
+      if (remaining > 0) {
+        const key = item.name;
+        if (!groupedItems[key]) {
+          groupedItems[key] = {
+            name: item.name,
+            price: item.price,
+            quantity: 0
+          };
+        }
+        groupedItems[key].quantity += remaining;
+      }
+    });
+
+    const itemsToShow = Object.values(groupedItems);
 
     // Create KOT content for thermal printer
     const kotContent = `
@@ -524,7 +670,7 @@ const FoodOrderPage = () => {
           <span>QTY | AMOUNT</span>
         </div>
 
-        ${selectedItems.map(item => `
+        ${itemsToShow.map(item => `
           <div class="item-row">
             <div class="item-details">
               <div class="item-name">${item.name}</div>
@@ -538,6 +684,14 @@ const FoodOrderPage = () => {
         `).join('')}
 
         <div class="totals">
+          <div class="total-row">
+            <span>Sub Total:</span>
+            <span>₹${baseTotal.toFixed(2)}</span>
+          </div>
+          <div class="total-row">
+            <span>GST (5%):</span>
+            <span>₹${gstAmount.toFixed(2)}</span>
+          </div>
           <div class="total-row grand">
             <span>TOTAL AMOUNT:</span>
             <span>₹${totalAmount.toFixed(2)}</span>
@@ -825,36 +979,42 @@ const FoodOrderPage = () => {
           <div style="font-weight: bold; color: #333; font-size: 10px; margin: 6px 0 4px 0; padding: 4px; background: #f5f5f5;">
             Original Order (${kot.order_created_date})
           </div>
-          ${kot.items_snapshot.map(item => `
+          ${kot.items_snapshot.map(item => {
+            const remaining = (item.quantity || 0) - (item.voided_quantity || 0);
+            return `
             <div class="item-row">
               <div class="item-details">
                 <div class="item-name">${item.name || item.menu_item_id || 'Unknown'}</div>
                 <div class="item-price">@ ₹${(item.price || 0).toFixed(2)}</div>
               </div>
               <div class="item-right">
-                <div class="item-qty">x ${item.quantity}</div>
-                <div class="item-total">₹${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</div>
+                <div class="item-qty">${item.voided_quantity > 0 ? `x ${item.quantity} (-${item.voided_quantity}) = ${remaining}` : `x ${item.quantity}`}</div>
+                <div class="item-total">₹${((item.price || 0) * remaining).toFixed(2)}</div>
               </div>
             </div>
-          `).join('')}
+          `;
+          }).join('')}
         ` : ''}
 
         ${kot.new_items_snapshot && kot.new_items_snapshot.length > 0 ? `
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #000; font-weight: bold; color: #FF6F00; font-size: 10px; padding: 4px; background: #fff3e0;">
             ⬆️ ADDED LATER (${kot.kot_date})
           </div>
-          ${kot.new_items_snapshot.map(item => `
+          ${kot.new_items_snapshot.map(item => {
+            const remaining = (item.quantity || 0) - (item.voided_quantity || 0);
+            return `
             <div class="item-row" style="background: #f9f3f0;">
               <div class="item-details">
                 <div class="item-name" style="color: #FF6F00;">${item.name || item.menu_item_id || 'Unknown'}</div>
                 <div class="item-price">@ ₹${(item.price || 0).toFixed(2)}</div>
               </div>
               <div class="item-right">
-                <div class="item-qty">x ${item.quantity}</div>
-                <div class="item-total">₹${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</div>
+                <div class="item-qty">${item.voided_quantity > 0 ? `x ${item.quantity} (-${item.voided_quantity}) = ${remaining}` : `x ${item.quantity}`}</div>
+                <div class="item-total">₹${((item.price || 0) * remaining).toFixed(2)}</div>
               </div>
             </div>
-          `).join('')}
+          `;
+          }).join('')}
         ` : ''}
 
         <div class="totals">
@@ -944,12 +1104,16 @@ const FoodOrderPage = () => {
       return;
     }
 
-    // Calculate total ONLY from new/added items
-    const addedItemsTotal = addedItems.reduce((sum, item) => {
+    // Calculate total ONLY from new/added items (BASE TOTAL WITHOUT GST)
+    const baseTotal = addedItems.reduce((sum, item) => {
       const price = item.price || 0;
       const qty = item.quantity || 0;
       return sum + (price * qty);
     }, 0);
+
+    // Add 5% GST
+    const totalWithGST = baseTotal * 1.05;
+    const gstAmount = totalWithGST - baseTotal;
 
     const kotContent = `
       <!DOCTYPE html>
@@ -1162,9 +1326,17 @@ const FoodOrderPage = () => {
         `).join('')}
 
         <div class="totals">
+          <div class="total-row">
+            <span>Sub Total:</span>
+            <span>₹${baseTotal.toFixed(2)}</span>
+          </div>
+          <div class="total-row">
+            <span>GST (5%):</span>
+            <span>₹${gstAmount.toFixed(2)}</span>
+          </div>
           <div class="total-row grand">
             <span>ADDITIONS TOTAL:</span>
-            <span>₹${addedItemsTotal.toFixed(2)}</span>
+            <span>₹${totalWithGST.toFixed(2)}</span>
           </div>
         </div>
 
@@ -1316,7 +1488,9 @@ const FoodOrderPage = () => {
             menu_item_id: item.menu_item_id,
             name: menuItems.find(m => (m.item_id || m.id) === item.menu_item_id)?.name || item.menu_item_id,
             price: item.price,
-            quantity: item.quantity
+            quantity: item.quantity,
+            voided_quantity: item.voided_quantity || 0,
+            remaining_quantity: (item.quantity || 0) - (item.voided_quantity || 0)
           }));
           
           // Replace initialItems with complete list from database
@@ -1456,7 +1630,12 @@ const FoodOrderPage = () => {
                           {kot.items_snapshot.map((item, itemIdx) => (
                             <div key={itemIdx} className="history-item-detail">
                               <span className="item-name">{item.name || item.menu_item_id || 'Unknown Item'}</span>
-                              <span className="item-qty">x{item.quantity}</span>
+                              {item.voided_quantity > 0 && (
+                                <span className="item-qty" style={{color: '#ff9800'}}>x{item.quantity} (-{item.voided_quantity}) = {item.quantity - item.voided_quantity}</span>
+                              )}
+                              {!item.voided_quantity && (
+                                <span className="item-qty">x{item.quantity}</span>
+                              )}
                               <span className="item-price">₹{(item.price || 0).toFixed(2)}</span>
                             </div>
                           ))}
@@ -1473,7 +1652,12 @@ const FoodOrderPage = () => {
                               <span className="item-name" style={{color: '#4caf50', fontWeight: 'bold'}}>
                                 {item.name || item.menu_item_id || 'Unknown Item'}
                               </span>
-                              <span className="item-qty">x{item.quantity}</span>
+                              {item.voided_quantity > 0 && (
+                                <span className="item-qty" style={{color: '#ff9800'}}>x{item.quantity} (-{item.voided_quantity}) = {item.quantity - item.voided_quantity}</span>
+                              )}
+                              {!item.voided_quantity && (
+                                <span className="item-qty">x{item.quantity}</span>
+                              )}
                               <span className="item-price">₹{(item.price || 0).toFixed(2)}</span>
                             </div>
                           ))}
@@ -1758,16 +1942,38 @@ const FoodOrderPage = () => {
                     <>
                       <div className="selected-items-list locked">
                         {initialItems.map((item) => (
-                          <div key={`${item.menu_item_id}-${item.id}`} className="order-item locked-item">
+                          <div key={`${item.menu_item_id}-${item.id}`} className={`order-item locked-item ${item.voided_quantity > 0 && item.remaining_quantity === 0 ? 'fully-cancelled' : ''}`}>
                             <div className="item-info">
                               <h4>{item.name}</h4>
+                              {item.voided_quantity > 0 && item.remaining_quantity === 0 && (
+                                <span className="cancelled-badge">✓ CANCELLED</span>
+                              )}
                               <p className="item-price">₹{item.price}</p>
                             </div>
                             <div className="item-controls locked-controls">
-                              <span className="qty-display">Qty: {item.quantity}</span>
+                              {/* Show remaining quantity, or original if not calculated yet */}
+                              {item.voided_quantity > 0 ? (
+                                <span className="qty-display">
+                                  Qty: {item.remaining_quantity || (item.quantity - item.voided_quantity)} 
+                                  <span className="qty-voided"> (-{item.voided_quantity} ✓ Cancelled)</span>
+                                </span>
+                              ) : (
+                                <span className="qty-display">Qty: {item.quantity}</span>
+                              )}
                             </div>
                             <div className="item-total">
-                              <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                              <span>₹{(item.price * (item.remaining_quantity || item.quantity)).toFixed(2)}</span>
+                            </div>
+                            <div className="item-actions">
+                              {item.remaining_quantity > 0 && (
+                                <button
+                                  className="cancel-item-btn"
+                                  onClick={() => handleCancelItem(item.id, item.name, item.remaining_quantity || item.quantity, item.price)}
+                                  title="Cancel this item"
+                                >
+                                  ✕ Cancel
+                                </button>
+                              )}
                             </div>
                             <span className="locked-icon" title="Item is locked - Cannot modify">🔒</span>
                           </div>
@@ -1775,7 +1981,7 @@ const FoodOrderPage = () => {
                       </div>
 
                       <div className="section-subtotal">
-                        <strong>Existing Items Total:</strong>
+                        <strong>Existing Items Total (Included 5% GST):</strong>
                         <span>₹{calculateExistingTotal().toFixed(2)}</span>
                       </div>
                     </>
@@ -1836,7 +2042,7 @@ const FoodOrderPage = () => {
                       </div>
 
                       <div className="section-subtotal new-items">
-                        <strong>New Items Total:</strong>
+                        <strong>New Items Total (Included 5% GST):</strong>
                         <span>₹{calculateNewAdditionsTotal().toFixed(2)}</span>
                       </div>
                     </>
@@ -1857,15 +2063,15 @@ const FoodOrderPage = () => {
 
                   <div className="bill-summary">
                     <div className="bill-row">
-                      <span>Existing Items Total:</span>
+                      <span>Existing Items Total (Included 5% GST):</span>
                       <span className="bill-value">₹{calculateExistingTotal().toFixed(2)}</span>
                     </div>
                     <div className="bill-row">
-                      <span>New Items Total:</span>
+                      <span>New Items Total (Included 5% GST):</span>
                       <span className="bill-value">₹{calculateNewAdditionsTotal().toFixed(2)}</span>
                     </div>
                     <div className="bill-row">
-                      <span>Total Amount:</span>
+                      <span>Total Amount (Included 5% GST):</span>
                       <span className="bill-value">₹{total.toFixed(2)}</span>
                     </div>
                     <div className="bill-row">
@@ -2009,6 +2215,82 @@ const FoodOrderPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Item Modal */}
+      {showCancelModal && cancelItemData && (
+        <div className="modal-overlay-cancel">
+          <div className="modal-content-cancel">
+            <h3>Cancel Item</h3>
+            <div className="modal-item-info">
+              <p><strong>Item:</strong> {cancelItemData.name}</p>
+              <p><strong>Price per Qty:</strong> ₹{cancelItemData.price.toFixed(2)}</p>
+              {cancelItemData.voided_quantity > 0 ? (
+                <>
+                  <p><strong>Original Qty:</strong> {cancelItemData.quantity}</p>
+                  <p><strong>Already Voided:</strong> {cancelItemData.voided_quantity}</p>
+                  <p><strong>Available to Cancel:</strong> {cancelItemData.quantity}</p>
+                </>
+              ) : (
+                <p><strong>Available Qty:</strong> {cancelItemData.quantity}</p>
+              )}
+            </div>
+
+            <div className="modal-quantity-section">
+              <label htmlFor="cancelQty">How much quantity to cancel?</label>
+              <div className="quantity-input-group">
+                <button 
+                  className="qty-btn-minus"
+                  onClick={() => setCancelQuantity(Math.max(1, cancelQuantity - 1))}
+                >
+                  −
+                </button>
+                <input
+                  id="cancelQty"
+                  type="number"
+                  min="1"
+                  max={cancelItemData.remaining_quantity || cancelItemData.quantity}
+                  value={cancelQuantity}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value) || 1;
+                    const maxAvailable = cancelItemData.remaining_quantity || cancelItemData.quantity;
+                    if (val >= 1 && val <= maxAvailable) {
+                      setCancelQuantity(val);
+                    }
+                  }}
+                  className="qty-input"
+                />
+                <button 
+                  className="qty-btn-plus"
+                  onClick={() => setCancelQuantity(Math.min(cancelItemData.remaining_quantity || cancelItemData.quantity, cancelQuantity + 1))}
+                >
+                  +
+                </button>
+              </div>
+              <p className="cancel-amount">
+                Amount to cancel: <strong>₹{(cancelItemData.price * cancelQuantity).toFixed(2)}</strong>
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button 
+                className="btn-cancel-modal"
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancelItemData(null);
+                }}
+              >
+                Back
+              </button>
+              <button 
+                className="btn-confirm-cancel"
+                onClick={handleConfirmCancel}
+              >
+                Confirm Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

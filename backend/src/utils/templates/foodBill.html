@@ -239,7 +239,11 @@
                 <tr>
                     <th>Item Name</th>
                     <th>Price</th>
-                    <th>Quantity</th>
+                    <th>Qty</th>
+                    {{#if hasVoidedItems}}
+                    <th>Voided</th>
+                    <th>Net Qty</th>
+                    {{/if}}
                     <th>Amount</th>
                 </tr>
             </thead>
@@ -249,13 +253,35 @@
                     <td>{{this.name}}</td>
                     <td>{{formatCurrency this.price}}</td>
                     <td>{{this.quantity}}</td>
-                    <td>{{formatCurrency (multiply this.price this.quantity)}}</td>
+                    {{#if ../hasVoidedItems}}
+                    <td>
+                        {{#if this.voided_quantity}}
+                            <span style="color: #ff6f00; font-weight: bold;">-{{this.voided_quantity}}</span>
+                        {{else}}
+                            -
+                        {{/if}}
+                    </td>
+                    <td>
+                        {{#if this.remaining_quantity}}
+                            {{this.remaining_quantity}}
+                        {{else}}
+                            <span style="color: #e74c3c; font-weight: bold; font-style: italic;">Cancelled</span>
+                        {{/if}}
+                    </td>
+                    {{/if}}
+                    <td>{{formatCurrency (multiply this.price this.remaining_quantity)}}</td>
                 </tr>
                 {{/each}}
             </tbody>
         </table>
 
         <div class="amount-summary">
+            {{#if hasVoidedItems}}
+            <!-- <div class="amount-row" style="opacity: 0.7; text-decoration: line-through;">
+                <span>Original Total:</span>
+                <span>{{formatCurrency originalTotal}}</span>
+            </div> -->
+            {{/if}}
             <div class="amount-row">
                 <span>Sub Total:</span>
                 <span>{{formatCurrency foodCalculations.baseAmount}}</span>
@@ -269,7 +295,7 @@
                 <span>{{formatCurrency foodCalculations.sgstAmount}}</span>
             </div>
             <div class="amount-row total-row">
-                <span>Total Amount (Incl. GST):</span>
+                <span>{{#if hasVoidedItems}}Total Amount{{else}}Total Amount{{/if}} (Incl. GST):</span>
                 <span>{{formatCurrency foodCalculations.finalTotal}}</span>
             </div>
             <div class="amount-row">

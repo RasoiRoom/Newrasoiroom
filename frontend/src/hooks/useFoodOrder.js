@@ -86,6 +86,25 @@ export const useFoodOrder = () => {
     }
   };
 
+  const cancelItem = async (orderId, itemId, reason = 'Customer requested cancellation', quantity = null) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.patch(
+        `${BASE_URL}/api/food-orders/${orderId}/items/${itemId}/cancel`,
+        { reason, quantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error cancelling item');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getOrder = async (orderId) => {
     setLoading(true);
     setError(null);
@@ -115,6 +134,7 @@ export const useFoodOrder = () => {
     addItems,
     deleteItem,
     cancelOrder,
+    cancelItem,
     getOrder
   };
 };

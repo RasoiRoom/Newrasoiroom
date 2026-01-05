@@ -79,7 +79,7 @@ const FoodPaymentModal = ({
                 <div className="food-summary-box">
                   <h3>Order Summary</h3>
                   <div className="summary-row">
-                    <span>Total Amount:</span>
+                    <span>Total Amount (Included 5% GST):</span>
                     <span className="amount">₹{totalAmount.toFixed(2)}</span>
                   </div>
                   <div className="summary-row">

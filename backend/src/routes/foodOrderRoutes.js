@@ -8,7 +8,8 @@ const {
   cancelOrder,
   checkOrderExists,
   printKOT,
-  getKOTHistory
+  getKOTHistory,
+  cancelItem
 } = require('../controllers/foodOrderController');
 
 // Check if order exists (for button display)
@@ -70,5 +71,8 @@ router.patch('/:orderId/status', auth, async (req, res) => {
 
 // Cancel order
 router.delete('/:orderId', auth, cancelOrder);
+
+// Cancel single item in order
+router.patch('/:orderId/items/:itemId/cancel', auth, cancelItem);
 
 module.exports = router;

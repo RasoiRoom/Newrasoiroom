@@ -4,9 +4,6 @@ const supabase = require('../config/db');
 function convertUTCToISTTime(utcTime) {
     if (!utcTime) return null;
     try {
-        console.log(`\n=== TIME CONVERSION DEBUG ===`);
-        console.log(`Input time value:`, utcTime);
-        console.log(`Input time type:`, typeof utcTime);
         
         // Handle different timestamp formats
         let dateObj;
@@ -24,13 +21,13 @@ function convertUTCToISTTime(utcTime) {
                 timeString = timeString + 'Z';
             }
             
-            console.log(`Normalized to ISO UTC format:`, timeString);
+            
             dateObj = new Date(timeString);
         } else {
             dateObj = new Date(utcTime);
         }
         
-        console.log(`Parsed as UTC Date object:`, dateObj.toISOString());
+        
         
         // Verify it's a valid date
         if (isNaN(dateObj.getTime())) {
@@ -40,7 +37,7 @@ function convertUTCToISTTime(utcTime) {
         
         // Convert to IST by adding 5.5 hours (5 hours 30 minutes)
         const istDate = new Date(dateObj.getTime() + (5.5 * 60 * 60 * 1000));
-        console.log(`After adding 5.5 hours (IST):`, istDate.toISOString());
+        
         
         // Extract hours, minutes, seconds from the adjusted time
         const hours = String(istDate.getUTCHours()).padStart(2, '0');
@@ -48,8 +45,7 @@ function convertUTCToISTTime(utcTime) {
         const seconds = String(istDate.getUTCSeconds()).padStart(2, '0');
         
         const formattedTime = `${hours}:${minutes}:${seconds}`;
-        console.log(`Final IST Time: ${formattedTime}`);
-        console.log(`=== END CONVERSION ===\n`);
+        
         
         return formattedTime;
     } catch (error) {
@@ -203,9 +199,8 @@ function validateEmail(email) {
 // Create a new booking
 async function createBooking(req, res) {
     try {
-        // console.log('========= CREATE BOOKING START =========');
-        // console.log('Request body:', JSON.stringify(req.body, null, 2));
-        // console.log('Nightly rates received:', req.body.nightly_rates);
+        
+        
         
         const {
             primary_guest,
@@ -420,7 +415,7 @@ async function createBooking(req, res) {
                 // console.log('Creating booking with data:', bookingData);
 
                 try {
-                    console.log('Attempting to create booking in Supabase with data:', JSON.stringify(bookingData, null, 2));
+                    // console.log('Attempting to create booking in Supabase with data:', JSON.stringify(bookingData, null, 2));
                     
                     const { data: booking, error } = await supabase
                         .from('bookings')
@@ -1053,7 +1048,12 @@ async function downloadInvoice(req, res) {
                 .select(`
                     *,
                     food_order_items (
-                        *,
+                        id,
+                        quantity,
+                        voided_quantity,
+                        voided_at,
+                        voided_reason,
+                        price,
                         menu_items (name, price)
                     )
                 `)
@@ -1080,20 +1080,29 @@ async function downloadInvoice(req, res) {
                     const key = `${itemName}_${itemPrice}`;
                     
                     if (foodItemsMap[key]) {
-                        // Item already exists, add to quantity
+                        // Item already exists, add to quantity and voided_quantity
                         foodItemsMap[key].quantity += item.quantity;
+                        foodItemsMap[key].voided_quantity += (item.voided_quantity || 0);
                     } else {
                         // New item
                         foodItemsMap[key] = {
                             name: itemName,
                             price: itemPrice,
-                            quantity: item.quantity
+                            quantity: item.quantity,
+                            voided_quantity: item.voided_quantity || 0,
+                            remaining_quantity: (item.quantity || 0) - (item.voided_quantity || 0)
                         };
                     }
                 });
                 
-                // Convert map to array
-                const foodItems = Object.values(foodItemsMap);
+                // Convert map to array and update remaining quantities
+                const foodItems = Object.values(foodItemsMap).map(item => ({
+                    ...item,
+                    remaining_quantity: item.quantity - item.voided_quantity
+                }));
+                
+                // Check if there are any voided items
+                const hasVoidedItems = foodItems.some(item => item.voided_quantity > 0);
 
                 // Get room numbers from invoice response
                 const roomNumbers = invoiceDetailsResponse.booking?.rooms
@@ -1122,7 +1131,9 @@ async function downloadInvoice(req, res) {
                     roomNumbers: roomNumbers,
                     foodOrder: foodOrderData,
                     foodItems: foodItems,
-                    foodPaymentTransactions: foodPayments || []
+                    foodPaymentTransactions: foodPayments || [],
+                    hasVoidedItems: hasVoidedItems,
+                    originalTotal: foodOrderData.total_amount
                 };
             }
         } catch (foodError) {
@@ -1404,8 +1415,8 @@ async function getInvoiceDetails(req, res) {
             }
         };
  
-        console.log('Invoice Data Times - checkin_time:', invoiceData.booking.checkin_time);
-        console.log('Invoice Data Times - checkout_time:', invoiceData.booking.checkout_time);
+        // console.log('Invoice Data Times - checkin_time:', invoiceData.booking.checkin_time);
+        // console.log('Invoice Data Times - checkout_time:', invoiceData.booking.checkout_time);
         res.json(invoiceData);
         
 

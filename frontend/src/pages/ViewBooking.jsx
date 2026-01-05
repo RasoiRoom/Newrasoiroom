@@ -27,7 +27,7 @@ const ViewBooking = () => {
         if (!response.data) {
           throw new Error('Invalid booking data received');
         }
-        console.log("Getting response:", response.data);
+        //console.log("Getting response:", response.data);
         const { booking, customer, guests, foodOrders } = response.data;
         setBookingData(response.data);
         setLoading(false);
@@ -343,64 +343,114 @@ const ViewBooking = () => {
           <section className="detail-section">
             <h3>Food Orders</h3>
             <div className="orders-container">
-              {bookingData.foodOrders.map((order, orderIndex) => (
-                <div key={orderIndex} className="order-card">
-                  <div className="order-header">
-                    <div className="order-title">Order #{orderIndex + 1}</div>
-                    <div className="order-meta">
-                      <span className={`status-badge ${order.payment_status?.toLowerCase()}`}>
-                        {order.payment_status || 'N/A'}
-                      </span>
-                      {/* <span className="order-time">
-                        {formatDate(order.created_at)} {formatTime(order.created_at)}
-                      </span> */}
-                    </div>
-                  </div>
-                  
-                  <div className="order-items">
-                    <h4>Items:</h4>
-                    <table className="items-table">
-                      <thead>
-                        <tr>
-                          <th>Item Name</th>
-                          <th>Category</th>
-                          <th>Price</th>
-                          <th>Qty</th>
-                          <th>Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {order.items && order.items.map((item, itemIndex) => (
-                          <tr key={itemIndex}>
-                            <td>{item.name}</td>
-                            <td>{item.category || '-'}</td>
-                            <td>₹{item.price}</td>
-                            <td>{item.quantity}</td>
-                            <td>₹{(item.price * item.quantity).toFixed(2)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className="order-summary">
-                    <div className="summary-row">
-                      <span className="label">Total Amount:</span>
-                      <span className="value">₹{order.total_amount}</span>
-                    </div>
-                    <div className="summary-row">
-                      <span className="label">Amount Paid:</span>
-                      <span className="value positive">₹{order.amount_paid}</span>
-                    </div>
-                    {order.amount_due > 0 && (
-                      <div className="summary-row">
-                        <span className="label">Amount Due:</span>
-                        <span className="value negative">₹{order.amount_due}</span>
+              {bookingData.foodOrders.map((order, orderIndex) => {
+                // Group items by name and sum quantities/voided
+                const groupedItems = {};
+                (order.items || []).forEach(item => {
+                  const key = item.name;
+                  if (!groupedItems[key]) {
+                    groupedItems[key] = {
+                      name: item.name,
+                      category: item.category,
+                      price: item.price,
+                      quantity: 0,
+                      voided_quantity: 0,
+                      items: []
+                    };
+                  }
+                  groupedItems[key].quantity += item.quantity || 0;
+                  groupedItems[key].voided_quantity += item.voided_quantity || 0;
+                  groupedItems[key].items.push(item);
+                });
+                
+                // Calculate total with remaining quantities
+                let totalWithRemaining = 0;
+                Object.values(groupedItems).forEach(item => {
+                  const remaining = item.quantity - item.voided_quantity;
+                  totalWithRemaining += (item.price || 0) * Math.max(0, remaining);
+                });
+                
+                return (
+                  <div key={orderIndex} className="order-card">
+                    <div className="order-header">
+                      <div className="order-title">Order #{orderIndex + 1}</div>
+                      <div className="order-meta">
+                        <span className={`status-badge ${order.payment_status?.toLowerCase()}`}>
+                          {order.payment_status || 'N/A'}
+                        </span>
                       </div>
-                    )}
+                    </div>
+                    
+                    <div className="order-items">
+                      <h4>Items:</h4>
+                      <table className="items-table">
+                        <thead>
+                          <tr>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Qty</th>
+                            <th>Voided</th>
+                            <th>Net Qty</th>
+                            <th>Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {Object.values(groupedItems).map((item, itemIndex) => {
+                            const remaining = item.quantity - item.voided_quantity;
+                            const itemTotal = (item.price || 0) * Math.max(0, remaining);
+                            
+                            return (
+                              <tr key={itemIndex}>
+                                <td>{item.name}</td>
+                                <td>{item.category || '-'}</td>
+                                <td>₹{item.price}</td>
+                                <td>{item.quantity}</td>
+                                <td>
+                                  {item.voided_quantity > 0 ? (
+                                    <span className="voided-qty">-{item.voided_quantity}</span>
+                                  ) : (
+                                    '-'
+                                  )}
+                                </td>
+                                <td>
+                                  {remaining > 0 ? (
+                                    <span className="remaining-qty">{remaining}</span>
+                                  ) : (
+                                    <span className="fully-voided">Fully Cancelled</span>
+                                  )}
+                                </td>
+                                <td>₹{itemTotal.toFixed(2)}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="order-summary">
+                      <div className="summary-row">
+                        <span className="label">Total Amount With GST:</span>
+                        <span className="value">₹{order.total_amount}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="label">Amount After Cancellation:</span>
+                        <span className="value">₹{totalWithRemaining.toFixed(2)}</span>
+                      </div>
+                      <div className="summary-row">
+                        <span className="label">Amount Paid:</span>
+                        <span className="value positive">₹{order.amount_paid}</span>
+                      </div>
+                      {order.amount_due > 0 && (
+                        <div className="summary-row">
+                          <span className="label">Amount Due:</span>
+                          <span className="value negative">₹{order.amount_due}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
