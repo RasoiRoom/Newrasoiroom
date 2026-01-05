@@ -48,6 +48,10 @@ const BookingManagement = () => {
   const [foodOrderData, setFoodOrderData] = useState(null);
   const [bookingFoodOrders, setBookingFoodOrders] = useState({});
 
+  // Print format modal state
+  const [showPrintFormatModal, setShowPrintFormatModal] = useState(false);
+  const [selectedBookingIdForPrint, setSelectedBookingIdForPrint] = useState(null);
+
   const fetchBookings = async () => {
     try {
       setLoading(true);
@@ -342,95 +346,98 @@ const BookingManagement = () => {
     setShowRefundModal(true);
   };
 
-  const handleViewInvoice = async (bookingId) => {
+  const handleViewInvoice = (bookingId) => {
+    setSelectedBookingIdForPrint(bookingId);
+    setShowPrintFormatModal(true);
+  };
+
+  const handlePrintFormatSelected = async (format) => {
+    setShowPrintFormatModal(false);
+    
     try {
-      // console.log('Starting invoice download for booking:', bookingId);
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('No authentication token found');
       }
-      
-      // console.log('Making request to:', `${BASE_URL}/api/bookings/${bookingId}/invoice/download`);
-      
-      // First check if the invoice is available
-      const checkResponse = await axios({
-        url: `${BASE_URL}/api/bookings/${bookingId}/invoice/details`,
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      // console.log('Invoice details check response:', checkResponse.data);
 
-      // If we get here, invoice is available, now get the PDF
-      const response = await axios({
-        url: `${BASE_URL}/api/bookings/${bookingId}/invoice/download`,
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/pdf'
-        },
-        responseType: 'blob'
-      });
+      if (format === 'thermal') {
+        // For thermal: Get invoice + food data and display as HTML
+        const response = await axios({
+          url: `${BASE_URL}/api/bookings/${selectedBookingIdForPrint}/invoice/print-data`,
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-      // console.log('PDF response received, type:', response.headers['content-type']);
-      
-      // Verify we got PDF data
-      if (!response.data || response.data.size === 0) {
-        throw new Error('Received empty PDF data');
-      }
-
-      // Create blob with explicit PDF type
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      // console.log('Created blob, size:', blob.size);
-
-      // Create and open in new window instead of using link
-      const blobUrl = window.URL.createObjectURL(blob);
-      
-      // Open in new window where we can handle load errors
-      const newWindow = window.open();
-      if (newWindow) {
-        newWindow.document.write(
-          '<html><head><title>Invoice Preview</title></head><body style="margin:0;padding:0;">' +
-          '<embed width="100%" height="100%" src="' + blobUrl + '" type="application/pdf">' +
-          '</body></html>'
-        );
+        const { invoiceData, foodBillData } = response.data;
+        console.log('API Response - invoiceData:', invoiceData);
+        console.log('API Response - foodBillData:', foodBillData);
+        console.log('Booking object:', invoiceData.booking);
+        console.log('Checkin Time (raw):', invoiceData.booking?.checkin_time);
+        console.log('Checkout Time (raw):', invoiceData.booking?.checkout_time);
+        displayThermalInvoice(invoiceData, foodBillData);
       } else {
-        // If popup was blocked, try iframe in current window
-        const iframe = document.createElement('iframe');
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.position = 'fixed';
-        iframe.style.top = '0';
-        iframe.style.left = '0';
-        iframe.style.zIndex = '9999';
-        iframe.src = blobUrl;
+        // For A4: Get PDF and display
+        const response = await axios({
+          url: `${BASE_URL}/api/bookings/${selectedBookingIdForPrint}/invoice/download`,
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/pdf'
+          },
+          responseType: 'blob'
+        });
+
+        if (!response.data || response.data.size === 0) {
+          throw new Error('Received empty PDF data');
+        }
+
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const blobUrl = window.URL.createObjectURL(blob);
         
-        const container = document.createElement('div');
-        container.style.position = 'fixed';
-        container.style.width = '100%';
-        container.style.height = '100%';
-        container.style.top = '0';
-        container.style.left = '0';
-        container.style.background = 'rgba(0,0,0,0.8)';
-        container.style.zIndex = '9998';
-        
-        const closeButton = document.createElement('button');
-        closeButton.innerText = 'Close';
-        closeButton.style.position = 'fixed';
-        closeButton.style.top = '20px';
-        closeButton.style.right = '20px';
-        closeButton.style.zIndex = '10000';
-        closeButton.onclick = () => {
-          document.body.removeChild(container);
-          document.body.removeChild(closeButton);
-          window.URL.revokeObjectURL(blobUrl);
-        };
-        
-        document.body.appendChild(container);
-        document.body.appendChild(closeButton);
-        container.appendChild(iframe);
+        const newWindow = window.open();
+        if (newWindow) {
+          newWindow.document.write(
+            '<html><head><title>Invoice Preview</title></head><body style="margin:0;padding:0;">' +
+            '<embed width="100%" height="100%" src="' + blobUrl + '" type="application/pdf">' +
+            '</body></html>'
+          );
+        } else {
+          const iframe = document.createElement('iframe');
+          iframe.style.width = '100%';
+          iframe.style.height = '100%';
+          iframe.style.position = 'fixed';
+          iframe.style.top = '0';
+          iframe.style.left = '0';
+          iframe.style.zIndex = '9999';
+          iframe.src = blobUrl;
+          
+          const container = document.createElement('div');
+          container.style.position = 'fixed';
+          container.style.width = '100%';
+          container.style.height = '100%';
+          container.style.top = '0';
+          container.style.left = '0';
+          container.style.background = 'rgba(0,0,0,0.8)';
+          container.style.zIndex = '9998';
+          
+          const closeButton = document.createElement('button');
+          closeButton.innerText = 'Close';
+          closeButton.style.position = 'fixed';
+          closeButton.style.top = '20px';
+          closeButton.style.right = '20px';
+          closeButton.style.zIndex = '10000';
+          closeButton.onclick = () => {
+            document.body.removeChild(container);
+            document.body.removeChild(closeButton);
+            window.URL.revokeObjectURL(blobUrl);
+          };
+          
+          document.body.appendChild(container);
+          document.body.appendChild(closeButton);
+          container.appendChild(iframe);
+        }
       }
 
     } catch (err) {
@@ -457,6 +464,524 @@ const BookingManagement = () => {
       }
       
       alert(errorMessage);
+    }
+    setSelectedBookingIdForPrint(null);
+  };
+
+  const displayThermalInvoice = (invoiceData, foodBillData) => {
+    const hotel = invoiceData.hotel || {};
+    const booking = invoiceData.booking || {};
+    const customer = invoiceData.customer || {};
+    const guests = invoiceData.guests || {};
+    const bookingId = invoiceData.booking_id;
+    const createdAt = invoiceData.created_at;
+    const invoiceDate = invoiceData.invoice_date;
+
+    // Get guest name and customer details - SAME as PDF
+    const guestName = guests.primary?.name || customer.name || 'Guest';
+    const guestPhone = guests.primary?.phone || customer.phone || '';
+    const guestAddress = customer.address || {};
+
+    // Calculate pax (primary + additional guests)
+    const pax = 1 + (guests.additional?.length || 0);
+
+    // Format dates and times
+    const formatDateIST = (dateStr) => {
+      if (!dateStr) return 'N/A';
+      return new Date(dateStr).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+    };
+
+    const formatTimeIST = (timeStr) => {
+      if (!timeStr) return 'N/A';
+      
+      // Case 1: Already formatted as "HH:MM:SS" (backend already converted)
+      if (typeof timeStr === 'string' && timeStr.match(/^\d{2}:\d{2}:\d{2}$/)) {
+        // Convert 24h to 12h format
+        const [hours, minutes] = timeStr.split(':');
+        const h = parseInt(hours);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${String(h12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
+      }
+      
+      // Case 2: If it contains "IST", extract and convert time part
+      if (typeof timeStr === 'string' && timeStr.includes('IST')) {
+        const timePart = timeStr.split(' ')[0];
+        const [hours, minutes] = timePart.split(':');
+        const h = parseInt(hours);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${String(h12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${ampm}`;
+      }
+      
+      // Case 3: If it's a date string (UTC), convert to IST
+      if (typeof timeStr === 'string') {
+        try {
+          let isoString = timeStr;
+          
+          // Handle format "2026-01-04 12:46:08.88" (space instead of T)
+          if (isoString.includes(' ') && !isoString.includes('T')) {
+            isoString = isoString.replace(' ', 'T');
+          }
+          
+          // Add Z if not present (mark as UTC)
+          if (!isoString.endsWith('Z') && !isoString.includes('+')) {
+            isoString = isoString + 'Z';
+          }
+          
+          const dateObj = new Date(isoString);
+          if (isNaN(dateObj.getTime())) return timeStr || 'N/A';
+          
+          // Convert UTC to IST (+5:30 hours)
+          const istDate = new Date(dateObj.getTime() + (5.5 * 60 * 60 * 1000));
+          
+          // Format as HH:MM:SS in 12h format
+          const hours = istDate.getUTCHours();
+          const minutes = String(istDate.getUTCMinutes()).padStart(2, '0');
+          const ampm = hours >= 12 ? 'PM' : 'AM';
+          const h12 = hours % 12 || 12;
+          
+          return `${String(h12).padStart(2, '0')}:${minutes} ${ampm}`;
+        } catch (e) {
+          console.error('Time format error:', e, timeStr);
+          return timeStr || 'N/A';
+        }
+      }
+      
+      return timeStr || 'N/A';
+    };
+
+    // Format departure date using same logic as backend
+    const getFormattedDepartureDate = (checkoutDate) => {
+      if (!checkoutDate) return 'N/A';
+      try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time to start of day
+        
+        const checkout = new Date(checkoutDate);
+        checkout.setHours(0, 0, 0, 0); // Reset time to start of day
+        
+        // If checkout date is today or earlier, show checkout date
+        // If checkout date is later, show today
+        const departureDate = checkout <= today ? checkout : today;
+        
+        return departureDate.toLocaleDateString('en-IN', {
+          year: 'numeric',
+          month: 'long',
+          day: '2-digit'
+        });
+      } catch (e) {
+        return checkoutDate || 'N/A';
+      }
+    };
+
+    // Calculate room GST (5% = 2.5% SGST + 2.5% CGST) - SAME as PDF
+    const roomTotal = parseFloat(booking.total_amount || 0);
+    const roomSubtotal = roomTotal / 1.05;
+    const roomSgst = (roomSubtotal * 0.025);
+    const roomCgst = (roomSubtotal * 0.025);
+
+    // Hotel logo
+    const hotelLogo = hotel.hotel_logo_url || '';
+
+    let thermalHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Thermal Invoice</title>
+        <meta charset="UTF-8">
+        <style>
+          @media print {
+            html { margin: 0; padding: 0; }
+            @page { 
+              margin: 3mm !important; 
+              size: 80mm auto !important;
+            }
+            * { 
+              margin: 0 !important;
+              padding: 0 !important;
+            }
+            body { 
+              margin: 0 !important;
+              padding: 3mm !important;
+              width: 80mm !important;
+              height: auto !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            .print-btn { display: none !important; }
+            table { page-break-inside: avoid; }
+          }
+          
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html { 
+            width: 80mm;
+            margin: 0;
+            padding: 0;
+          }
+          body {
+            font-family: 'Courier New', Courier, monospace;
+            width: 80mm;
+            margin: 0;
+            padding: 3mm;
+            font-size: 10px;
+            line-height: 1.3;
+            color: #000;
+            background: white;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            color-adjust: exact;
+            overflow: visible;
+            height: auto;
+          }
+          
+          .print-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-weight: bold;
+            width: 100%;
+          }
+          .print-btn:hover { background: #0056b3; }
+          
+          .header-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 6px;
+            margin-bottom: 6px;
+            width: 100%;
+          }
+          .logo-section {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 70px;
+          }
+          .logo-section img {
+            max-width: 70px;
+            max-height: 50px;
+            width: auto;
+            height: auto;
+            display: block;
+          }
+          .header-content {
+            flex: 1;
+            text-align: center;
+          }
+          
+          .invoice-title { font-weight: bold; font-size: 11px; margin-bottom: 0px; color: #000; }
+          .hotel-name { font-weight: bold; font-size: 12px; margin: 2px 0 1px 0; color: #000; word-break: break-word; }
+          .hotel-info { font-size: 9px; margin: 0.5px 0; line-height: 1.1; color: #000; word-break: break-word; }
+          
+          .header-bottom {
+            border-bottom: 1px dashed #000;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
+          }
+          
+          .section-title { 
+            font-weight: bold; 
+            font-size: 10px; 
+            margin: 4px 0 2px 0; 
+            text-decoration: underline; 
+            color: #000;
+          }
+          
+          .divider { border-bottom: 1px dashed #000; margin: 3px 0; }
+          
+          .info-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 9px; 
+            margin: 1px 0; 
+            color: #000;
+            overflow: hidden;
+          }
+          .info-label { 
+            flex: 0 0 40%; 
+            font-weight: bold; 
+            color: #000;
+            word-break: break-word;
+          }
+          .info-value { 
+            flex: 1; 
+            text-align: right; 
+            color: #000;
+            word-break: break-word;
+            overflow-wrap: break-word;
+          }
+          
+          table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 9px; 
+            margin: 3px 0;
+            table-layout: fixed;
+          }
+          th, td { 
+            text-align: left; 
+            padding: 1px 0.5px; 
+            color: #000;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+          }
+          th { 
+            font-weight: bold; 
+            border-bottom: 1px dashed #000; 
+            color: #000;
+            padding-bottom: 1px;
+          }
+          td { 
+            border-bottom: 1px dotted #ccc; 
+            color: #000;
+          }
+          
+          .col-right { text-align: right; }
+          
+          .total-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-weight: bold; 
+            font-size: 10px; 
+            padding: 2px 0;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+            margin: 3px 0;
+            color: #000;
+          }
+          .total-amt { 
+            font-size: 11px; 
+            font-weight: bold; 
+            color: #000;
+          }
+          
+          .page-break { 
+            page-break-after: always; 
+            margin: 8px 0; 
+            border-top: 2px solid #000; 
+            padding-top: 4px;
+          }
+          
+          .footer { 
+            text-align: center; 
+            font-size: 8px; 
+            margin-top: 4px; 
+            padding-top: 2px; 
+            border-top: 1px dashed #000; 
+            color: #000;
+            line-height: 1.2;
+          }
+          
+          .note { 
+            font-size: 8px; 
+            margin: 1px 0; 
+            line-height: 1.1; 
+            color: #000;
+          }
+        </style>
+      </head>
+      <body>
+        <button class="print-btn" onclick="window.print()">🖨️ PRINT</button>
+
+        <div class="header-row">
+          ${hotelLogo ? `<div class="logo-section"><img src="${hotelLogo}" alt="Hotel Logo" onerror="this.style.display='none'"></div>` : ''}
+          <div class="header-content">
+            <div class="invoice-title">INVOICE</div>
+            <div class="hotel-name">${hotel.hotel_name || 'HOTEL'}</div>
+            ${hotel.address_line1 ? `<div class="hotel-info">${hotel.address_line1}</div>` : ''}
+            ${hotel.city ? `<div class="hotel-info">${hotel.city}${hotel.state ? ', ' + hotel.state : ''}</div>` : ''}
+            ${hotel.country && hotel.pin_code ? `<div class="hotel-info">${hotel.country} - ${hotel.pin_code}</div>` : ''}
+            ${hotel.gst_number ? `<div class="hotel-info">GSTIN: ${hotel.gst_number}</div>` : ''}
+          </div>
+        </div>
+        <div class="header-bottom"></div>
+
+        <div class="section-title">BILL TO:</div>
+        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${guestName}</span></div>
+        ${guestAddress.address_line1 ? `<div class="info-row"><span class="info-label">Addr:</span><span class="info-value">${guestAddress.address_line1}</span></div>` : ''}
+        ${guestAddress.city ? `<div class="info-row"><span class="info-label">City:</span><span class="info-value">${guestAddress.city}${guestAddress.state ? ', ' + guestAddress.state : ''}</span></div>` : ''}
+        ${customer.meal_plan ? `<div class="info-row"><span class="info-label">Plan:</span><span class="info-value">${customer.meal_plan}</span></div>` : ''}
+        ${customer.gst_number ? `<div class="info-row"><span class="info-label">GST No:</span><span class="info-value">${customer.gst_number}</span></div>` : ''}
+        <div class="info-row"><span class="info-label">Arr Date:</span><span class="info-value">${formatDateIST(booking.check_in_date)}</span></div>
+        <div class="info-row"><span class="info-label">Arr Time:</span><span class="info-value">${formatTimeIST(booking.checkin_time)}</span></div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">INVOICE DETAILS:</div>
+        <div class="info-row"><span class="info-label">Inv No:</span><span class="info-value">INV-${bookingId}</span></div>
+        <div class="info-row"><span class="info-label">Date:</span><span class="info-value">${invoiceDate || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Book ID:</span><span class="info-value">${bookingId}</span></div>
+        <div class="info-row"><span class="info-label">Nights:</span><span class="info-value">${booking.total_nights || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Pax:</span><span class="info-value">${pax}</span></div>
+        ${booking.status?.toLowerCase() === 'upcoming' 
+          ? `<div class="info-row"><span class="info-label">Booked:</span><span class="info-value">${booking.booked_until_date || 'N/A'}</span></div>` 
+          : `<div class="info-row"><span class="info-label">Dep Date:</span><span class="info-value">${getFormattedDepartureDate(booking.check_out_date)}</span></div>`
+        }
+        <div class="info-row"><span class="info-label">Dep Time:</span><span class="info-value">${formatTimeIST(booking.checkout_time)}</span></div>
+
+        <div class="divider"></div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="flex:0.8">Room</th>
+              <th style="flex:0.5">No</th>
+              <th style="flex:0.8">Duration</th>
+              <th class="col-right" style="flex:0.7">Rate</th>
+              <th class="col-right" style="flex:0.8">Amt</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    // Room details - SAME as PDF (with nightly rates if applicable)
+    if (booking.rooms && booking.rooms.length > 0) {
+      booking.rooms.forEach(room => {
+        if (room.has_nightly_rates && room.nightly_rates && room.nightly_rates.length > 0) {
+          // Show nightly breakdown - EXACTLY like PDF
+          room.nightly_rates.forEach((nr, idx) => {
+            thermalHtml += `<tr>
+              ${idx === 0 ? `<td><strong>${room.room_type}</strong></td>` : `<td></td>`}
+              ${idx === 0 ? `<td>${room.room_number}</td>` : `<td></td>`}
+              <td>N${nr.night}</td>
+              <td class="col-right">₹${nr.rate.toFixed(0)}</td>
+              <td class="col-right">₹${nr.rate.toFixed(0)}</td>
+            </tr>`;
+          });
+        } else {
+          // Single rate for all nights - EXACTLY like PDF
+          const roomAmount = room.total_nights * room.price_per_night;
+          thermalHtml += `<tr>
+            <td>${room.room_type}</td>
+            <td>${room.room_number}</td>
+            <td>${room.total_nights}N</td>
+            <td class="col-right">₹${room.price_per_night.toFixed(0)}</td>
+            <td class="col-right">₹${roomAmount.toFixed(2)}</td>
+          </tr>`;
+        }
+      });
+    }
+
+    thermalHtml += `
+        </tbody>
+      </table>
+
+      <table style="margin-bottom: 2px;">
+        <tr><td style="width:60%">SubTl:</td><td class="col-right" style="width:40%">₹${roomSubtotal.toFixed(2)}</td></tr>
+        <tr><td>CGST(2.5%):</td><td class="col-right">₹${roomCgst.toFixed(2)}</td></tr>
+        <tr><td>SGST(2.5%):</td><td class="col-right">₹${roomSgst.toFixed(2)}</td></tr>
+      </table>
+
+      <div class="total-row">
+        <span>TOTAL:</span>
+        <span class="total-amt">₹${roomTotal.toFixed(2)}</span>
+      </div>
+
+      <div class="info-row"><span class="info-label">Pd:</span><span class="info-value">₹${(booking.amount_paid || 0).toFixed(2)}</span></div>
+      <div class="info-row"><span class="info-label">Sts:</span><span class="info-value">${booking.payment_status}</span></div>
+    `;
+
+    // Food Bill if exists
+    if (foodBillData && foodBillData.foodOrder && foodBillData.foodItems && foodBillData.foodItems.length > 0) {
+      const foodTotal = parseFloat(foodBillData.foodOrder.total_amount || 0);
+      // Food bill has 5% GST = 2.5% CGST + 2.5% SGST
+      const foodSubtotal = foodTotal / 1.05;
+      const foodCgst = (foodSubtotal * 0.025);
+      const foodSgst = (foodSubtotal * 0.025);
+
+      thermalHtml += `
+        <div class="page-break"></div>
+        <div class="section-title">FOOD BILL</div>
+        <div class="info-row"><span class="info-label">Order:</span><span class="info-value">${foodBillData.foodOrder.id}</span></div>
+        <div class="info-row"><span class="info-label">Date:</span><span class="info-value">${new Date(foodBillData.foodOrder.created_at).toLocaleDateString('en-IN')}</span></div>
+        <div class="info-row"><span class="info-label">Guest:</span><span class="info-value">${guestName}</span></div>
+
+        <div class="divider"></div>
+
+        <table style="font-size:8px;">
+          <thead>
+            <tr>
+              <th style="width:50%;text-align:left">Item</th>
+              <th class="col-right" style="width:13%">Price</th>
+              <th class="col-right" style="width:13%">Qty</th>
+              <th class="col-right" style="width:24%">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      // Show food items with voided quantity handling (just like backend)
+      foodBillData.foodItems.forEach(item => {
+        const actualQty = item.quantity - (item.voided_quantity || 0); // Show only non-voided quantity
+        if (actualQty > 0) { // Only show items with remaining quantity
+          const itemTotal = actualQty * item.price;
+          // Shorten item name if too long
+          const itemName = item.name.length > 18 ? item.name.substring(0, 15) + '..' : item.name;
+          thermalHtml += `<tr>
+            <td>${itemName}</td>
+            <td class="col-right">₹${item.price.toFixed(0)}</td>
+            <td class="col-right">${actualQty}</td>
+            <td class="col-right">₹${itemTotal.toFixed(2)}</td>
+          </tr>`;
+        }
+      });
+
+      thermalHtml += `
+          </tbody>
+        </table>
+
+        <table style="margin-bottom: 2px;font-size:9px;">
+          <tr><td style="width:60%">SubTl:</td><td class="col-right" style="width:40%">₹${foodSubtotal.toFixed(2)}</td></tr>
+          <tr><td>CGST(2.5%):</td><td class="col-right">₹${foodCgst.toFixed(2)}</td></tr>
+          <tr><td>SGST(2.5%):</td><td class="col-right">₹${foodSgst.toFixed(2)}</td></tr>
+        </table>
+
+        <div class="total-row" style="font-size:10px;">
+          <span>FOOD TL:</span>
+          <span class="total-amt">₹${foodTotal.toFixed(2)}</span>
+        </div>
+
+        <div class="info-row" style="font-size:9px;"><span class="info-label">Pd:</span><span class="info-value">₹${(foodBillData.foodOrder.amount_paid || 0).toFixed(2)}</span></div>
+        <div class="info-row" style="font-size:9px;"><span class="info-label">Sts:</span><span class="info-value">${foodBillData.foodOrder.payment_status || 'N/A'}</span></div>
+
+        <div class="divider"></div>
+        <div class="total-row" style="font-size:11px;">
+          <span>GRAND TOTAL:</span>
+          <span class="total-amt">₹${(roomTotal + foodTotal).toFixed(2)}</span>
+        </div>
+
+        <div class="note">
+          <p>Chk-out: 12:00 PM</p>
+          <p>Late chk-out may incur charges</p>
+        </div>
+      `;
+    }
+
+    thermalHtml += `
+      <div class="footer">Thank you for your visit! Please retain this invoice for your records.</div>
+      </body>
+      </html>
+    `;
+
+    // Open print window - same approach as KOT
+    const printWindow = window.open('', '_blank', 'width=400,height=800');
+    if (printWindow) {
+      printWindow.document.write(thermalHtml);
+      printWindow.document.close();
+    } else {
+      alert('Please allow popups to print invoice');
     }
   };
 
@@ -1196,6 +1721,66 @@ const BookingManagement = () => {
         setPaymentMode={setFoodPaymentMode}
         isSubmitting={isSubmitting}
       />
+
+      {/* Print Format Modal */}
+      <Transition appear show={showPrintFormatModal} as={Fragment}>
+        <Dialog as="div" className="relative z-50" onClose={() => setShowPrintFormatModal(false)}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 mb-4">
+                    Select Invoice Format
+                  </Dialog.Title>
+
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => handlePrintFormatSelected('A4')}
+                      className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 font-medium"
+                    >
+                      📄 A4 Format (PDF)
+                    </button>
+
+                    <button
+                      onClick={() => handlePrintFormatSelected('thermal')}
+                      className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2 font-medium"
+                    >
+                      🖨️ Thermal (80mm)
+                    </button>
+
+                    <button
+                      onClick={() => setShowPrintFormatModal(false)}
+                      className="w-full px-4 py-3 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
     </div>
   );
 };

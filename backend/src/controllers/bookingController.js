@@ -1014,6 +1014,137 @@ async function getBookingForBill(req, res) {
     }
 }
 
+// Get complete invoice data with hotel details and food bill (for thermal/preview)
+async function getInvoiceDataForPrint(req, res) {
+    try {
+        const { booking_id } = req.params;
+        const user_id = req.user.user_id;
+
+        // Get invoice details using the existing function
+        const invoiceDetailsResponse = {};
+        await getInvoiceDetails({ params: { booking_id }, user: { user_id } }, {
+            json: (data) => {
+                Object.assign(invoiceDetailsResponse, data);
+            },
+            status: (code) => ({
+                json: (data) => {
+                    invoiceDetailsResponse.statusCode = code;
+                    Object.assign(invoiceDetailsResponse, data);
+                }
+            })
+        });
+
+        // Check if there was an error in getting invoice details
+        if (invoiceDetailsResponse.statusCode >= 400) {
+            return res.status(invoiceDetailsResponse.statusCode).json({ error: invoiceDetailsResponse.error });
+        }
+
+        // Check if food order exists for this booking
+        let foodBillData = null;
+        try {
+            const { data: foodOrderData, error: foodOrderError } = await supabase
+                .from('food_orders')
+                .select(`
+                    *,
+                    food_order_items (
+                        id,
+                        quantity,
+                        voided_quantity,
+                        voided_at,
+                        voided_reason,
+                        price,
+                        menu_items (name, price)
+                    )
+                `)
+                .eq('booking_id', booking_id)
+                .single();
+
+            if (!foodOrderError && foodOrderData) {
+                // Get food payment transactions
+                const { data: foodPayments } = await supabase
+                    .from('food_payment_transactions')
+                    .select('*')
+                    .eq('food_order_id', foodOrderData.id)
+                    .order('created_at', { ascending: false });
+
+                // Format food items and group duplicates
+                const foodItemsMap = {};
+                foodOrderData.food_order_items.forEach(item => {
+                    const itemName = item.menu_items?.name || 'Unknown Item';
+                    const itemPrice = item.price;
+                    
+                    // Create a unique key for grouping (name + price)
+                    const key = `${itemName}_${itemPrice}`;
+                    
+                    if (foodItemsMap[key]) {
+                        // Item already exists, add to quantity and voided_quantity
+                        foodItemsMap[key].quantity += item.quantity;
+                        foodItemsMap[key].voided_quantity += (item.voided_quantity || 0);
+                    } else {
+                        // New item
+                        foodItemsMap[key] = {
+                            name: itemName,
+                            price: itemPrice,
+                            quantity: item.quantity,
+                            voided_quantity: item.voided_quantity || 0,
+                            remaining_quantity: (item.quantity || 0) - (item.voided_quantity || 0)
+                        };
+                    }
+                });
+                
+                // Convert map to array and update remaining quantities
+                const foodItems = Object.values(foodItemsMap).map(item => ({
+                    ...item,
+                    remaining_quantity: item.quantity - item.voided_quantity
+                }));
+
+                // Get room numbers from invoice response
+                const roomNumbers = invoiceDetailsResponse.booking?.rooms
+                    ?.map(r => r.room_number)
+                    .join(', ') || 'N/A';
+
+                // Prepare food bill data with hotel details from invoice response
+                const hotel = invoiceDetailsResponse.hotel || {};
+                const fullAddress = [
+                    hotel.address_line1,
+                    hotel.city,
+                    hotel.state,
+                    hotel.country,
+                    hotel.pin_code
+                ].filter(Boolean).join(', ');
+
+                foodBillData = {
+                    booking_id: booking_id,
+                    hotelName: hotel.hotel_name || 'N/A',
+                    hotelLogo: hotel.hotel_logo_url || null,
+                    hotelAddress: fullAddress || 'N/A',
+                    hotelPhone: invoiceDetailsResponse.hotelPhone || 'N/A',
+                    hotelEmail: invoiceDetailsResponse.hotelEmail || 'N/A',
+                    hotelGSTIN: hotel.gst_number || 'N/A',
+                    customer: invoiceDetailsResponse.customer,
+                    roomNumbers: roomNumbers,
+                    foodOrder: foodOrderData,
+                    foodItems: foodItems,
+                    foodPaymentTransactions: foodPayments || [],
+                    originalTotal: foodOrderData.total_amount
+                };
+            }
+        } catch (foodError) {
+            // Continue with just room invoice if food error
+        }
+
+        // Return combined data (invoice + food bill)
+        res.json({
+            invoiceData: invoiceDetailsResponse,
+            foodBillData: foodBillData
+        });
+
+    } catch (error) {
+        // console.error('Error in getInvoiceDataForPrint:', error);
+        res.status(500).json({ error: 'Failed to fetch invoice data' });
+    }
+}
+
 async function downloadInvoice(req, res) {
     try {
         const { booking_id } = req.params;
@@ -1507,5 +1638,6 @@ module.exports = {
     getBookingForBill,
     downloadInvoice,
     getInvoiceDetails,
+    getInvoiceDataForPrint,
     addPayment
 }; // End of exports

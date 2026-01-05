@@ -11,6 +11,7 @@ const {
     getBookingForBill,
     downloadInvoice,
     getInvoiceDetails,
+    getInvoiceDataForPrint,
     addPayment,
 } = require('../controllers/bookingController');
 const {
@@ -26,6 +27,7 @@ router.use(auth);  // All booking routes require authentication
 router.post('/', createBooking);
 router.get('/', getBookings);
 router.get('/:booking_id/invoice/details', verifyBookingAccess, getInvoiceDetails);
+router.get('/:booking_id/invoice/print-data', verifyBookingAccess, getInvoiceDataForPrint);
 router.get('/:booking_id', verifyBookingAccess, getBookingDetails);
 
 // Routes that require booking access verification

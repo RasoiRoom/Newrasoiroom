@@ -23,7 +23,7 @@ handlebars.registerHelper('formatTime', function(time) {
             const [hours, minutes, seconds] = time.split(':').map(Number);
             const period = hours >= 12 ? 'PM' : 'AM';
             const displayHours = hours % 12 || 12; // Convert 0 to 12, keep others as is
-            return `${String(displayHours).padStart(2, '0')}:${minutes} ${period}`;
+            return `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
         }
         
         // If it's a full datetime string, extract just the time part
@@ -43,7 +43,7 @@ handlebars.registerHelper('formatTime', function(time) {
             const hoursNum = parseInt(hours);
             const period = hoursNum >= 12 ? 'PM' : 'AM';
             const displayHours = hoursNum % 12 || 12;
-            return `${String(displayHours).padStart(2, '0')}:${minutes} ${period}`;
+            return `${String(displayHours).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
         }
         
         return '00:00 AM'; // fallback for invalid formats
@@ -284,7 +284,7 @@ async function generateInvoicePDF(invoiceData, foodBillData = null) {
 
                 // Combine both pages - room invoice first, then food bill
                 combinedHtml = roomHtml + foodHtml;
-                console.log('   ✅ Food bill page added\n');
+                // console.log('   ✅ Food bill page added\n');
             }
         }
 
