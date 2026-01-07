@@ -598,7 +598,7 @@ const BookingManagement = () => {
           @media print {
             html { margin: 0; padding: 0; }
             @page { 
-              margin: 3mm !important; 
+              margin: 0mm !important; 
               size: 80mm auto !important;
             }
             * { 
@@ -607,7 +607,7 @@ const BookingManagement = () => {
             }
             body { 
               margin: 0 !important;
-              padding: 3mm !important;
+              padding: 2mm !important;
               width: 80mm !important;
               height: auto !important;
               -webkit-print-color-adjust: exact !important;
@@ -625,12 +625,12 @@ const BookingManagement = () => {
             padding: 0;
           }
           body {
-            font-family: 'Courier New', Courier, monospace;
+            font-family: Arial, 'Courier New', Courier, monospace;
             width: 80mm;
             margin: 0;
-            padding: 3mm;
-            font-size: 10px;
-            line-height: 1.3;
+            padding: 2mm;
+            font-size: 11px;
+            line-height: 1.4;
             color: #000;
             background: white;
             -webkit-print-color-adjust: exact;
@@ -644,11 +644,11 @@ const BookingManagement = () => {
             background: #007bff;
             color: white;
             border: none;
-            padding: 8px 16px;
-            font-size: 12px;
+            padding: 10px 16px;
+            font-size: 13px;
             cursor: pointer;
             border-radius: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: bold;
             width: 100%;
           }
@@ -657,9 +657,9 @@ const BookingManagement = () => {
           .header-row {
             display: flex;
             flex-direction: row;
-            align-items: flex-start;
-            gap: 6px;
-            margin-bottom: 6px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
             width: 100%;
           }
           .logo-section {
@@ -667,50 +667,55 @@ const BookingManagement = () => {
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 70px;
+            width: 75px;
+            height: 75px;
           }
           .logo-section img {
-            max-width: 70px;
-            max-height: 50px;
+            max-width: 75px;
+            max-height: 60px;
             width: auto;
             height: auto;
             display: block;
+            border: 1px solid #000;
+            padding: 2px;
           }
           .header-content {
             flex: 1;
             text-align: center;
           }
           
-          .invoice-title { font-weight: bold; font-size: 11px; margin-bottom: 0px; color: #000; }
-          .hotel-name { font-weight: bold; font-size: 12px; margin: 2px 0 1px 0; color: #000; word-break: break-word; }
-          .hotel-info { font-size: 9px; margin: 0.5px 0; line-height: 1.1; color: #000; word-break: break-word; }
+          .invoice-title { font-weight: bold; font-size: 12px; margin-bottom: 2px; color: #000; }
+          .hotel-name { font-weight: bold; font-size: 13px; margin: 2px 0 2px 0; color: #000; word-break: break-word; }
+          .hotel-info { font-size: 10px; margin: 1px 0; line-height: 1.2; color: #000; word-break: break-word; }
           
           .header-bottom {
-            border-bottom: 1px dashed #000;
+            border-bottom: 2px solid #000;
             padding-bottom: 4px;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
           }
           
           .section-title { 
             font-weight: bold; 
-            font-size: 10px; 
-            margin: 4px 0 2px 0; 
+            font-size: 11px; 
+            margin: 5px 0 3px 0; 
             text-decoration: underline; 
             color: #000;
+            border-bottom: 1px solid #000;
+            padding-bottom: 2px;
           }
           
-          .divider { border-bottom: 1px dashed #000; margin: 3px 0; }
+          .divider { border-bottom: 1px solid #000; margin: 4px 0; }
           
           .info-row { 
             display: flex; 
             justify-content: space-between; 
-            font-size: 9px; 
-            margin: 1px 0; 
+            font-size: 10px; 
+            margin: 2px 0; 
             color: #000;
             overflow: hidden;
           }
           .info-label { 
-            flex: 0 0 40%; 
+            flex: 0 0 45%; 
             font-weight: bold; 
             color: #000;
             word-break: break-word;
@@ -721,30 +726,32 @@ const BookingManagement = () => {
             color: #000;
             word-break: break-word;
             overflow-wrap: break-word;
+            font-weight: 500;
           }
           
           table { 
             width: 100%; 
             border-collapse: collapse; 
-            font-size: 9px; 
-            margin: 3px 0;
+            font-size: 10px; 
+            margin: 4px 0;
             table-layout: fixed;
           }
           th, td { 
             text-align: left; 
-            padding: 1px 0.5px; 
+            padding: 2px 1px; 
             color: #000;
             word-wrap: break-word;
             overflow-wrap: break-word;
           }
           th { 
             font-weight: bold; 
-            border-bottom: 1px dashed #000; 
+            border-bottom: 2px solid #000; 
             color: #000;
-            padding-bottom: 1px;
+            padding-bottom: 2px;
+            padding-top: 2px;
           }
           td { 
-            border-bottom: 1px dotted #ccc; 
+            border-bottom: 1px solid #000; 
             color: #000;
           }
           
@@ -754,46 +761,48 @@ const BookingManagement = () => {
             display: flex; 
             justify-content: space-between; 
             font-weight: bold; 
-            font-size: 10px; 
-            padding: 2px 0;
-            border-top: 1px dashed #000;
-            border-bottom: 1px dashed #000;
-            margin: 3px 0;
+            font-size: 12px; 
+            padding: 3px 0;
+            border-top: 2px solid #000;
+            border-bottom: 2px solid #000;
+            margin: 4px 0;
             color: #000;
           }
           .total-amt { 
-            font-size: 11px; 
+            font-size: 13px; 
             font-weight: bold; 
             color: #000;
           }
           
           .page-break { 
             page-break-after: always; 
-            margin: 8px 0; 
-            border-top: 2px solid #000; 
-            padding-top: 4px;
+            margin: 10px 0; 
+            border-top: 3px solid #000; 
+            padding-top: 6px;
           }
           
           .footer { 
             text-align: center; 
-            font-size: 8px; 
-            margin-top: 4px; 
-            padding-top: 2px; 
-            border-top: 1px dashed #000; 
+            font-size: 9px; 
+            margin-top: 6px; 
+            padding-top: 3px; 
+            border-top: 1px solid #000; 
             color: #000;
-            line-height: 1.2;
+            line-height: 1.3;
+            font-weight: 500;
           }
           
           .note { 
-            font-size: 8px; 
-            margin: 1px 0; 
-            line-height: 1.1; 
+            font-size: 9px; 
+            margin: 2px 0; 
+            line-height: 1.2; 
             color: #000;
+            font-weight: 500;
           }
         </style>
       </head>
       <body>
-        <button class="print-btn" onclick="window.print()">🖨️ PRINT</button>
+        <button class="print-btn" onclick="window.print()">🖨️ PRINT INVOICE</button>
 
         <div class="header-row">
           ${hotelLogo ? `<div class="logo-section"><img src="${hotelLogo}" alt="Hotel Logo" onerror="this.style.display='none'"></div>` : ''}
@@ -808,39 +817,39 @@ const BookingManagement = () => {
         </div>
         <div class="header-bottom"></div>
 
-        <div class="section-title">BILL TO:</div>
-        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${guestName}</span></div>
-        ${guestAddress.address_line1 ? `<div class="info-row"><span class="info-label">Addr:</span><span class="info-value">${guestAddress.address_line1}</span></div>` : ''}
-        ${guestAddress.city ? `<div class="info-row"><span class="info-label">City:</span><span class="info-value">${guestAddress.city}${guestAddress.state ? ', ' + guestAddress.state : ''}</span></div>` : ''}
-        ${customer.meal_plan ? `<div class="info-row"><span class="info-label">Plan:</span><span class="info-value">${customer.meal_plan}</span></div>` : ''}
-        ${customer.gst_number ? `<div class="info-row"><span class="info-label">GST No:</span><span class="info-value">${customer.gst_number}</span></div>` : ''}
-        <div class="info-row"><span class="info-label">Arr Date:</span><span class="info-value">${formatDateIST(booking.check_in_date)}</span></div>
-        <div class="info-row"><span class="info-label">Arr Time:</span><span class="info-value">${formatTimeIST(booking.checkin_time)}</span></div>
-
-        <div class="divider"></div>
-
         <div class="section-title">INVOICE DETAILS:</div>
         <div class="info-row"><span class="info-label">Inv No:</span><span class="info-value">INV-${bookingId}</span></div>
+        <div class="info-row"><span class="info-label">Booking ID:</span><span class="info-value">${bookingId}</span></div>
         <div class="info-row"><span class="info-label">Date:</span><span class="info-value">${invoiceDate || 'N/A'}</span></div>
-        <div class="info-row"><span class="info-label">Book ID:</span><span class="info-value">${bookingId}</span></div>
-        <div class="info-row"><span class="info-label">Nights:</span><span class="info-value">${booking.total_nights || 'N/A'}</span></div>
-        <div class="info-row"><span class="info-label">Pax:</span><span class="info-value">${pax}</span></div>
-        ${booking.status?.toLowerCase() === 'upcoming' 
-          ? `<div class="info-row"><span class="info-label">Booked:</span><span class="info-value">${booking.booked_until_date || 'N/A'}</span></div>` 
-          : `<div class="info-row"><span class="info-label">Dep Date:</span><span class="info-value">${getFormattedDepartureDate(booking.check_out_date)}</span></div>`
-        }
-        <div class="info-row"><span class="info-label">Dep Time:</span><span class="info-value">${formatTimeIST(booking.checkout_time)}</span></div>
-
         <div class="divider"></div>
+
+        <div class="section-title">GUEST DETAILS:</div>
+        <div class="info-row"><span class="info-label">Name:</span><span class="info-value">${guestName}</span></div>
+        ${guestAddress.address_line1 ? `<div class="info-row"><span class="info-label">Address:</span><span class="info-value">${guestAddress.address_line1}</span></div>` : ''}
+        ${guestAddress.city ? `<div class="info-row"><span class="info-label">City:</span><span class="info-value">${guestAddress.city}${guestAddress.state ? ', ' + guestAddress.state : ''}</span></div>` : ''}
+        ${customer.meal_plan ? `<div class="info-row"><span class="info-label">Meal Plan:</span><span class="info-value">${customer.meal_plan}</span></div>` : ''}
+        ${customer.gst_number ? `<div class="info-row"><span class="info-label">GST No:</span><span class="info-value">${customer.gst_number}</span></div>` : ''}
+        <div class="divider"></div>
+
+        <div class="section-title">STAY DETAILS:</div>
+        <div class="info-row"><span class="info-label">Check-In Date:</span><span class="info-value">${formatDateIST(booking.check_in_date)}</span></div>
+        <div class="info-row"><span class="info-label">Check-In Time:</span><span class="info-value">${formatTimeIST(booking.checkin_time)}</span></div>
+        <div class="info-row"><span class="info-label">Check-Out Date:</span><span class="info-value">${getFormattedDepartureDate(booking.check_out_date)}</span></div>
+        <div class="info-row"><span class="info-label">Check-Out Time:</span><span class="info-value">${formatTimeIST(booking.checkout_time)}</span></div>
+        <div class="info-row"><span class="info-label">Number of Nights:</span><span class="info-value">${booking.total_nights || 'N/A'}</span></div>
+        <div class="info-row"><span class="info-label">Number of Guests:</span><span class="info-value">${pax}</span></div>
+        <div class="divider"></div>
+
+        <div class="section-title">ROOM CHARGES:</div>
 
         <table>
           <thead>
             <tr>
-              <th style="flex:0.8">Room</th>
-              <th style="flex:0.5">No</th>
-              <th style="flex:0.8">Duration</th>
-              <th class="col-right" style="flex:0.7">Rate</th>
-              <th class="col-right" style="flex:0.8">Amt</th>
+              <th style="width:35%">Room Type</th>
+              <th style="width:15%">No</th>
+              <th style="width:15%">Nights</th>
+              <th class="col-right" style="width:17%">Rate</th>
+              <th class="col-right" style="width:18%">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -878,19 +887,25 @@ const BookingManagement = () => {
         </tbody>
       </table>
 
-      <table style="margin-bottom: 2px;">
-        <tr><td style="width:60%">SubTl:</td><td class="col-right" style="width:40%">₹${roomSubtotal.toFixed(2)}</td></tr>
-        <tr><td>CGST(2.5%):</td><td class="col-right">₹${roomCgst.toFixed(2)}</td></tr>
-        <tr><td>SGST(2.5%):</td><td class="col-right">₹${roomSgst.toFixed(2)}</td></tr>
+      <div class="divider"></div>
+
+      <table style="margin-bottom: 4px; font-weight: bold;">
+        <tr><td style="width:65%">Subtotal:</td><td class="col-right" style="width:35%">₹${roomSubtotal.toFixed(2)}</td></tr>
+        <tr><td>CGST (2.5%):</td><td class="col-right">₹${roomCgst.toFixed(2)}</td></tr>
+        <tr><td>SGST (2.5%):</td><td class="col-right">₹${roomSgst.toFixed(2)}</td></tr>
       </table>
 
       <div class="total-row">
-        <span>TOTAL:</span>
+        <span>TOTAL ROOM CHARGES:</span>
         <span class="total-amt">₹${roomTotal.toFixed(2)}</span>
       </div>
 
-      <div class="info-row"><span class="info-label">Pd:</span><span class="info-value">₹${(booking.amount_paid || 0).toFixed(2)}</span></div>
-      <div class="info-row"><span class="info-label">Sts:</span><span class="info-value">${booking.payment_status}</span></div>
+      <div class="divider"></div>
+
+      <table style="font-size: 11px;">
+        <tr><td style="width:60%"><strong>Amount Paid:</strong></td><td class="col-right" style="width:40%; font-weight: bold;">₹${(booking.amount_paid || 0).toFixed(2)}</td></tr>
+        <tr><td><strong>Payment Status:</strong></td><td class="col-right" style="font-weight: bold;">${booking.payment_status}</td></tr>
+      </table>
     `;
 
     // Food Bill if exists
@@ -904,19 +919,19 @@ const BookingManagement = () => {
       thermalHtml += `
         <div class="page-break"></div>
         <div class="section-title">FOOD BILL</div>
-        <div class="info-row"><span class="info-label">Order:</span><span class="info-value">${foodBillData.foodOrder.id}</span></div>
-        <div class="info-row"><span class="info-label">Date:</span><span class="info-value">${new Date(foodBillData.foodOrder.created_at).toLocaleDateString('en-IN')}</span></div>
-        <div class="info-row"><span class="info-label">Guest:</span><span class="info-value">${guestName}</span></div>
+        <div class="info-row"><span class="info-label">Order ID:</span><span class="info-value">${foodBillData.foodOrder.id}</span></div>
+        <div class="info-row"><span class="info-label">Order Date:</span><span class="info-value">${new Date(foodBillData.foodOrder.created_at).toLocaleDateString('en-IN')}</span></div>
+        <div class="info-row"><span class="info-label">Guest Name:</span><span class="info-value">${guestName}</span></div>
 
         <div class="divider"></div>
 
-        <table style="font-size:8px;">
+        <table style="font-size:10px;">
           <thead>
             <tr>
-              <th style="width:50%;text-align:left">Item</th>
-              <th class="col-right" style="width:13%">Price</th>
-              <th class="col-right" style="width:13%">Qty</th>
-              <th class="col-right" style="width:24%">Amount</th>
+              <th style="width:45%;text-align:left">Item Name</th>
+              <th class="col-right" style="width:15%">Price</th>
+              <th class="col-right" style="width:12%">Qty</th>
+              <th class="col-right" style="width:28%">Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -928,7 +943,7 @@ const BookingManagement = () => {
         if (actualQty > 0) { // Only show items with remaining quantity
           const itemTotal = actualQty * item.price;
           // Shorten item name if too long
-          const itemName = item.name.length > 18 ? item.name.substring(0, 15) + '..' : item.name;
+          const itemName = item.name.length > 20 ? item.name.substring(0, 17) + '..' : item.name;
           thermalHtml += `<tr>
             <td>${itemName}</td>
             <td class="col-right">₹${item.price.toFixed(0)}</td>
@@ -942,35 +957,46 @@ const BookingManagement = () => {
           </tbody>
         </table>
 
-        <table style="margin-bottom: 2px;font-size:9px;">
-          <tr><td style="width:60%">SubTl:</td><td class="col-right" style="width:40%">₹${foodSubtotal.toFixed(2)}</td></tr>
-          <tr><td>CGST(2.5%):</td><td class="col-right">₹${foodCgst.toFixed(2)}</td></tr>
-          <tr><td>SGST(2.5%):</td><td class="col-right">₹${foodSgst.toFixed(2)}</td></tr>
+        <div class="divider"></div>
+
+        <table style="margin-bottom: 4px; font-weight: bold;">
+          <tr><td style="width:65%">Subtotal:</td><td class="col-right" style="width:35%">₹${foodSubtotal.toFixed(2)}</td></tr>
+          <tr><td>CGST (2.5%):</td><td class="col-right">₹${foodCgst.toFixed(2)}</td></tr>
+          <tr><td>SGST (2.5%):</td><td class="col-right">₹${foodSgst.toFixed(2)}</td></tr>
         </table>
 
-        <div class="total-row" style="font-size:10px;">
-          <span>FOOD TL:</span>
+        <div class="total-row" style="font-size:12px;">
+          <span>TOTAL FOOD CHARGES:</span>
           <span class="total-amt">₹${foodTotal.toFixed(2)}</span>
         </div>
 
-        <div class="info-row" style="font-size:9px;"><span class="info-label">Pd:</span><span class="info-value">₹${(foodBillData.foodOrder.amount_paid || 0).toFixed(2)}</span></div>
-        <div class="info-row" style="font-size:9px;"><span class="info-label">Sts:</span><span class="info-value">${foodBillData.foodOrder.payment_status || 'N/A'}</span></div>
+        <div class="divider"></div>
+
+        <table style="font-size: 11px;">
+          <tr><td style="width:60%"><strong>Amount Paid:</strong></td><td class="col-right" style="width:40%; font-weight: bold;">₹${(foodBillData.foodOrder.amount_paid || 0).toFixed(2)}</td></tr>
+          <tr><td><strong>Payment Status:</strong></td><td class="col-right" style="font-weight: bold;">${foodBillData.foodOrder.payment_status || 'N/A'}</td></tr>
+        </table>
 
         <div class="divider"></div>
-        <div class="total-row" style="font-size:11px;">
+        <div class="total-row" style="font-size:13px; font-weight: bold;">
           <span>GRAND TOTAL:</span>
           <span class="total-amt">₹${(roomTotal + foodTotal).toFixed(2)}</span>
         </div>
 
         <div class="note">
-          <p>Chk-out: 12:00 PM</p>
-          <p>Late chk-out may incur charges</p>
+          <p>Check-out Time: 12:00 PM</p>
+          <p>Late checkout may incur additional charges</p>
         </div>
       `;
     }
 
     thermalHtml += `
-      <div class="footer">Thank you for your visit! Please retain this invoice for your records.</div>
+      <div class="footer">
+        
+        Thank you for your visit!
+        Please retain this invoice for your records.
+        
+      </div>
       </body>
       </html>
     `;
