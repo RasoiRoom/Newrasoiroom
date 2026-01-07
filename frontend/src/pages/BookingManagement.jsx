@@ -607,7 +607,7 @@ const BookingManagement = () => {
             }
             body { 
               margin: 0 !important;
-              padding: 4mm 3mm !important;
+              padding: 5mm 3mm !important;
               width: 74mm !important;
               height: auto !important;
               -webkit-print-color-adjust: exact !important;
@@ -628,9 +628,9 @@ const BookingManagement = () => {
             font-family: Arial, 'Courier New', Courier, monospace;
             width: 74mm;
             margin: 0 auto;
-            padding: 4mm 3mm;
-            font-size: 11px;
-            line-height: 1.5;
+            padding: 5mm 3mm;
+            font-size: 12px;
+            line-height: 1.6;
             color: #000;
             background: white;
             -webkit-print-color-adjust: exact;
@@ -658,8 +658,8 @@ const BookingManagement = () => {
             display: flex;
             flex-direction: row;
             align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 10px;
             width: 100%;
             overflow: hidden;
           }
@@ -668,12 +668,12 @@ const BookingManagement = () => {
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 65px;
-            height: 65px;
+            width: 70px;
+            height: 70px;
           }
           .logo-section img {
-            max-width: 65px;
-            max-height: 60px;
+            max-width: 70px;
+            max-height: 65px;
             width: auto;
             height: auto;
             display: block;
@@ -687,42 +687,42 @@ const BookingManagement = () => {
             overflow: hidden;
           }
           
-          .invoice-title { font-weight: bold; font-size: 12px; margin-bottom: 2px; color: #000; }
-          .hotel-name { font-weight: bold; font-size: 12px; margin: 2px 0; color: #000; word-wrap: break-word; overflow-wrap: break-word; }
-          .hotel-info { font-size: 10px; margin: 1px 0; line-height: 1.2; color: #000; word-wrap: break-word; overflow-wrap: break-word; }
+          .invoice-title { font-weight: bold; font-size: 13px; margin-bottom: 3px; color: #000; }
+          .hotel-name { font-weight: bold; font-size: 13px; margin: 2px 0; color: #000; word-wrap: break-word; overflow-wrap: break-word; }
+          .hotel-info { font-size: 11px; margin: 2px 0; line-height: 1.3; color: #000; word-wrap: break-word; overflow-wrap: break-word; }
           
           .header-bottom {
             border-bottom: 2px solid #000;
-            padding-bottom: 4px;
-            margin-bottom: 5px;
+            padding-bottom: 5px;
+            margin-bottom: 6px;
           }
           
           .section-title { 
             font-weight: bold; 
-            font-size: 11px; 
-            margin: 5px 0 3px 0; 
+            font-size: 12px; 
+            margin: 6px 0 4px 0; 
             color: #000;
             border-bottom: 1px solid #000;
             padding-bottom: 2px;
           }
           
-          .divider { border-bottom: 1px solid #000; margin: 4px 0; }
+          .divider { border-bottom: 1px solid #000; margin: 5px 0; }
           
           .info-row { 
             display: flex; 
             justify-content: space-between; 
-            font-size: 10px; 
-            margin: 2px 0; 
+            font-size: 11px; 
+            margin: 3px 0; 
             color: #000;
             overflow: hidden;
             width: 100%;
-            line-height: 1.3;
+            line-height: 1.4;
           }
           .info-label { 
             flex: 0 0 auto; 
             font-weight: bold; 
             color: #000;
-            margin-right: 4px;
+            margin-right: 6px;
             word-wrap: break-word;
           }
           .info-value { 
@@ -737,26 +737,27 @@ const BookingManagement = () => {
           table { 
             width: 100%; 
             border-collapse: collapse; 
-            font-size: 10px; 
-            margin: 4px 0;
+            font-size: 11px; 
+            margin: 5px 0;
             table-layout: auto;
             overflow: hidden;
           }
           th, td { 
             text-align: left; 
-            padding: 2px 1px; 
+            padding: 3px 2px; 
             color: #000;
             word-wrap: break-word;
             overflow-wrap: break-word;
             max-width: 100%;
+            line-height: 1.3;
           }
           th { 
             font-weight: bold; 
             border-bottom: 1px solid #000; 
             color: #000;
-            padding-bottom: 2px;
+            padding-bottom: 3px;
             padding-top: 2px;
-            font-size: 10px;
+            font-size: 11px;
           }
           td { 
             border-bottom: 1px solid #000; 
@@ -769,42 +770,42 @@ const BookingManagement = () => {
             display: flex; 
             justify-content: space-between; 
             font-weight: bold; 
-            font-size: 12px; 
-            padding: 3px 0;
+            font-size: 13px; 
+            padding: 4px 0;
             border-top: 1px solid #000;
             border-bottom: 1px solid #000;
-            margin: 4px 0;
+            margin: 5px 0;
             color: #000;
             width: 100%;
             overflow: hidden;
           }
           .total-amt { 
-            font-size: 12px; 
+            font-size: 13px; 
             font-weight: bold; 
             color: #000;
           }
           
           .page-break { 
             page-break-after: always; 
-            margin: 10px 0; 
+            margin: 12px 0; 
             border-top: 2px solid #000; 
-            padding-top: 5px;
+            padding-top: 6px;
           }
           
           .footer { 
             text-align: center; 
-            font-size: 9px; 
-            margin-top: 5px; 
-            padding-top: 3px; 
+            font-size: 10px; 
+            margin-top: 6px; 
+            padding-top: 4px; 
             border-top: 1px solid #000; 
             color: #000;
-            line-height: 1.3;
+            line-height: 1.4;
           }
           
           .note { 
-            font-size: 9px; 
-            margin: 2px 0; 
-            line-height: 1.2; 
+            font-size: 10px; 
+            margin: 3px 0; 
+            line-height: 1.3; 
             color: #000;
           }
         </style>
@@ -850,7 +851,7 @@ const BookingManagement = () => {
 
         <div class="section-title">ROOM CHARGES:</div>
 
-        <table style="font-size: 10px;">
+        <table style="font-size: 11px;">
           <thead>
             <tr>
               <th style="width:28%">Room Type</th>
@@ -897,7 +898,7 @@ const BookingManagement = () => {
 
       <div class="divider"></div>
 
-      <table style="margin-bottom: 3px; font-size: 10px;">
+      <table style="margin-bottom: 4px; font-size: 11px;">
         <tr><td style="width:50%">Subtotal:</td><td class="col-right" style="width:50%">₹${roomSubtotal.toFixed(2)}</td></tr>
         <tr><td>CGST (2.5%):</td><td class="col-right">₹${roomCgst.toFixed(2)}</td></tr>
         <tr><td>SGST (2.5%):</td><td class="col-right">₹${roomSgst.toFixed(2)}</td></tr>
@@ -910,7 +911,7 @@ const BookingManagement = () => {
 
       <div class="divider"></div>
 
-      <table style="font-size: 11px;">
+      <table style="font-size: 12px;">
         <tr><td style="width:50%"><strong>Amount Paid:</strong></td><td class="col-right" style="width:50%; font-weight: bold;">₹${(booking.amount_paid || 0).toFixed(2)}</td></tr>
         <tr><td><strong>Status:</strong></td><td class="col-right" style="font-weight: bold;">${booking.payment_status}</td></tr>
       </table>
@@ -927,13 +928,13 @@ const BookingManagement = () => {
       thermalHtml += `
         <div class="page-break"></div>
         <div class="section-title">FOOD BILL</div>
-        <div class="info-row"><span class="info-label">Order ID:</span><span class="info-value">${foodBillData.foodOrder.id}</span></div>
+        
         <div class="info-row"><span class="info-label">Order Date:</span><span class="info-value">${new Date(foodBillData.foodOrder.created_at).toLocaleDateString('en-IN')}</span></div>
         <div class="info-row"><span class="info-label">Guest Name:</span><span class="info-value">${guestName}</span></div>
 
         <div class="divider"></div>
 
-        <table style="font-size:10px;">
+        <table style="font-size:11px;">
           <thead>
             <tr>
               <th style="width:32%;text-align:left">Item</th>
@@ -950,8 +951,8 @@ const BookingManagement = () => {
         const actualQty = item.quantity - (item.voided_quantity || 0); // Show only non-voided quantity
         if (actualQty > 0) { // Only show items with remaining quantity
           const itemTotal = actualQty * item.price;
-          // Shorten item name if too long - limit to 18 chars
-          const itemName = item.name.length > 18 ? item.name.substring(0, 15) + '..' : item.name;
+          // Shorten item name if too long - limit to 20 chars
+          const itemName = item.name.length > 20 ? item.name.substring(0, 17) + '..' : item.name;
           thermalHtml += `<tr>
             <td>${itemName}</td>
             <td class="col-right">₹${item.price.toFixed(0)}</td>
@@ -967,26 +968,26 @@ const BookingManagement = () => {
 
         <div class="divider"></div>
 
-        <table style="margin-bottom: 3px; font-size: 10px;">
+        <table style="margin-bottom: 4px; font-size: 11px;">
           <tr><td style="width:50%">Subtotal:</td><td class="col-right" style="width:50%">₹${foodSubtotal.toFixed(2)}</td></tr>
           <tr><td>CGST (2.5%):</td><td class="col-right">₹${foodCgst.toFixed(2)}</td></tr>
           <tr><td>SGST (2.5%):</td><td class="col-right">₹${foodSgst.toFixed(2)}</td></tr>
         </table>
 
-        <div class="total-row" style="font-size:11px;">
+        <div class="total-row" style="font-size:12px;">
           <span>TOTAL FOOD:</span>
           <span class="total-amt">₹${foodTotal.toFixed(2)}</span>
         </div>
 
         <div class="divider"></div>
 
-        <table style="font-size: 11px;">
+        <table style="font-size: 12px;">
           <tr><td style="width:50%"><strong>Amount Paid:</strong></td><td class="col-right" style="width:50%; font-weight: bold;">₹${(foodBillData.foodOrder.amount_paid || 0).toFixed(2)}</td></tr>
           <tr><td><strong>Status:</strong></td><td class="col-right" style="font-weight: bold;">${foodBillData.foodOrder.payment_status || 'N/A'}</td></tr>
         </table>
 
         <div class="divider"></div>
-        <div class="total-row" style="font-size:12px;">
+        <div class="total-row" style="font-size:13px;">
           <span>GRAND TOTAL:</span>
           <span class="total-amt">₹${(roomTotal + foodTotal).toFixed(2)}</span>
         </div>
