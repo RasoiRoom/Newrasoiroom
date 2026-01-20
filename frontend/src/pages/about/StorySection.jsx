@@ -93,9 +93,9 @@ export const StorySection = () => {
                 </span>
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-400">
-                Launched in 2025, Bireena Athiti was born from the need to
-                simplify complex hotel and restaurent operations. Our name combines "Bireena"
-                (excellence) and "Athiti" (guest), reflecting our mission to
+                Launched in 2025, RasoiRoom was born from the need to
+                simplify complex hotel and restaurent operations. Our name combines "Rasoi"
+                (kitchen) and "Room", reflecting our mission to
                 elevate hospitality management through technology.
               </p>
             </motion.div>
@@ -116,7 +116,7 @@ export const StorySection = () => {
                   addresses actual industry needs.
                 </p>
                 <p className="text-gray-400">
-                  Today, Bireena Athiti powers fifties of hotels and restaurant across India and
+                  Today, RasoiRoom powers fifties of hotels and restaurant across India and
                   beyond, streamlining everything from reservations and room &  restaurant
                   management to staff coordination and financial reporting. Our
                   platform brings modern efficiency while preserving the personal
@@ -141,8 +141,8 @@ export const StorySection = () => {
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
               
               <img
-                src="/2.png"
-                alt="Bireena Athiti Dashboard"
+                src="/elneb startup logo.png"
+                alt="RasoiRoom Dashboard"
                 className="relative w-full rounded-xl object-cover shadow-2xl"
               />
             </div>

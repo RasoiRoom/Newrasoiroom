@@ -42,7 +42,7 @@ export const AboutPage = () => {
                 transition={{ duration: 0.5 }}
               >
                 <h2 className="inline-flex items-center rounded-full bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 px-4 py-1.5 text-sm font-medium text-cyan-400 ring-1 ring-inset ring-cyan-500/20 backdrop-blur-sm">
-                  About BIREENA <span className="font-devanagari ml-1">अतिथि</span>
+                  About Rasoi <span className="font-devanagari ml-1">Room</span>
                 </h2>
               </motion.div>
               

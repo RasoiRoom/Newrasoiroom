@@ -14,7 +14,7 @@ const testimonials = [
     name: 'Sarah Johnson',
     role: 'Food Critic',
     content:
-      'The attention to detail in every dish is remarkable. BIREENA अतिथि has redefined fine dining with their innovative approach to traditional cuisine.',
+      'The attention to detail in every dish is remarkable. RasoiRoom has redefined fine dining with their innovative approach to traditional cuisine.',
     rating: 5,
     image: null,
   },
@@ -59,7 +59,7 @@ const testimonials = [
     name: 'James Kim',
     role: 'Travel Blogger',
     content:
-      'Having dined at restaurants worldwide, I can confidently say that BIREENA अतिथि stands among the best. The cultural fusion in their dishes is unparalleled.',
+      'Having dined at restaurants worldwide, I can confidently say that RasoiRoom stands among the best. The cultural fusion in their dishes is unparalleled.',
     rating: 5,
     image: null,
   },
@@ -151,7 +151,7 @@ export const Testimonials = () => {
           </h2>
           <p className="text-lg text-gray-400">
             Read what our valued customers have to say about their dining
-            experience at <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-medium">BIREENA अतिथि</span>.
+            experience at <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-medium">RasoiRoom</span>.
           </p>
         </div>
 

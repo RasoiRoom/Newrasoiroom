@@ -255,7 +255,7 @@ export const Features = () => {
           <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl text-slate-100">
             Why Choose{' '}
             <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient font-devanagari">
-              BIREENA<span className="font-devanagari">अतिथि</span>
+              Rasoi<span className="font-devanagari">Room</span>
             </span>
           </h2>
           <p className="text-base md:text-lg text-slate-400 leading-relaxed">

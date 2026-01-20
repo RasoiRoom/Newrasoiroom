@@ -312,7 +312,7 @@ export const Header = () => {
           <Link to="/" className="group relative flex items-center gap-2 py-1">
             <div className="flex">
               <span className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:via-blue-300 group-hover:to-purple-300 transition-all duration-300 font-devanagari">
-                BIREENAअतिथि
+                RasoiRoom
               </span>
             </div>
           </Link>

@@ -46,13 +46,13 @@ const contactMethods = [
     icon: PhoneCall,
     name: 'Phone Support',
     description: 'Talk to our support team',
-    value: '+91 91351-55931 , +91 93049-42225',
+    value: '+91 8092702246 , +91 8320191025',
   },
   {
     icon: Mail,
     name: 'Email',
     description: 'Send us an email',
-    value: 'bireenainfo@gmail.com',
+    value: 'rasoiroom31@gmail.com',
   },
   {
     icon: Clock,
@@ -323,16 +323,17 @@ export const ContactPage = () => {
                   demo of our software.
                 </p>
                 <address className="mt-8 space-y-4 text-base not-italic text-slate-400">
-                  <p className="font-semibold text-slate-300">Bireena Info Tech</p>
-                  <p>BB-36, Vashist Colony</p>
-                  <p>Anisabad</p>
-                  <p>Patna, Bihar</p>
-                  <p>India 800025</p>
+                  <p className="font-semibold text-slate-300"></p>
+                  <p>Kohka-Kurud Road</p>
+                  <p>Bhilai </p>
+                  <p>Chhattisgarh,</p>
+                  <p>India 490024</p>
                 </address>
               </div>
               <div className="min-h-[400px] bg-slate-800/50">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3598.8587169852935!2d85.0915787!3d25.576366799999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x43d931ec9b428883%3A0xa1137df98dfedf57!2sBireena%20Info%20Tech!5e0!3m2!1sen!2sin!4v1758275103865!5m2!1sen!2sin"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5303.686916633596!2d81.34319165025516!3d21.23497521862057!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a2922b3f507ac99%3A0xb276f7d1a3d9c05!2sRungta%20College%20Of%20Engineering%20%26%20Technology!5e0!3m2!1sen!2sin!4v1768915337514!5m2!1sen!2sin"
+                 
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}

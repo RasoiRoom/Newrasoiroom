@@ -46,7 +46,7 @@ export const HeroSection = () => {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="mt-6 text-xl leading-8 text-gray-400"
             >
-              From front desk operations to financial reporting, Bireena Athiti
+              From front desk operations to financial reporting, RasoiRoom
               provides all the tools you need to manage your property
               efficiently and deliver exceptional guest experiences.
             </motion.p>

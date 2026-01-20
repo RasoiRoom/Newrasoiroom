@@ -26,7 +26,7 @@
 //               <h1 className="text-4xl font-bold leading-tight text-dark sm:text-5xl md:text-6xl lg:text-7xl">
 //                 Discover Comfort Beyond Stay at{' '}
 //                 <span className="heading font-devanagari text-primary">
-//                   BIREENA_अतिथि
+//                   RasoiRoom
 //                 </span>
 //               </h1>
 //             </motion.div>
@@ -232,7 +232,7 @@ export const Hero = () => {
               <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
                 Discover Comfort Beyond Stay at{' '}
                 <span className="font-devanagari heading text-transparent">
-                  BIREENA_अतिथि
+                  RasoiRoom
                 </span>
               </h1>
             </div>

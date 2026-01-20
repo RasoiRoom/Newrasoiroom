@@ -131,8 +131,8 @@ export const FAQSection = () => {
             <p className="text-lg text-gray-400">
               Find answers to common questions about dining at{' '}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-medium">
-                BIREENA{' '}
-                <span className="font-devanagari">अतिथि</span>
+                Rasoi{' '}
+                <span className="font-devanagari">Room</span>
               </span>.
             </p>
           </div>

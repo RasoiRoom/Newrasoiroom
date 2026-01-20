@@ -159,9 +159,9 @@ import {
 import logo from '../../../public/logo.png';
 
 const socialLinks = [
-  { name: 'Facebook', icon: Facebook, href: 'https://www.facebook.com/share/1AA1UTr5Tc' },
-  { name: 'Instagram', icon: Instagram, href: 'https://www.instagram.com/bireenainfo' },
-  { name: 'Youtube', icon: Youtube, href: 'http://www.youtube.com/@Bireenainfotech' },
+  { name: 'Facebook', icon: Facebook, href: '#' },
+  { name: 'Instagram', icon: Instagram, href: '#' },
+  { name: 'Youtube', icon: Youtube, href: '#' },
   // { name: 'Twitter', icon: Twitter, href: '#' },
 ];
 
@@ -203,23 +203,22 @@ export const Footer = () => {
             <Link to="/" className="group relative flex items-center gap-2 py-1">
               <div className="flex flex-col">
                 <span className="text-2xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-cyan-300 group-hover:via-blue-300 group-hover:to-purple-300 transition-all duration-300 font-devanagari">
-                  BIREENAअतिथि
+                  RasoiRoom
                 </span>
               </div>
             </Link>
             <div className="space-y-4 text-sm text-gray-300">
               <div className="group flex items-start gap-3 rounded-lg p-2 transition-all duration-300 hover:bg-cyan-500/5">
                 <MapPin className="h-5 w-5 shrink-0 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-                <p className="group-hover:text-white transition-colors">B-36, Anisabad, Patna, Bihar, India 800025</p>
+                <p className="group-hover:text-white transition-colors"> Kohka-Kurud Road, Bhilai , Chhattisgarh, India 490024 </p>
               </div>
               <div className="group flex items-center gap-3 rounded-lg p-2 transition-all duration-300 hover:bg-cyan-500/5">
                 <Phone className="h-5 w-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-                <p className="group-hover:text-white transition-colors">+91 91351-55931 , 
-+91 93049-42225</p>
+                <p className="group-hover:text-white transition-colors">+91 8092702246 , +91 8320191025</p>
               </div>
               <div className="group flex items-center gap-3 rounded-lg p-2 transition-all duration-300 hover:bg-cyan-500/5">
                 <Mail className="h-5 w-5 text-cyan-400 group-hover:text-cyan-300 transition-colors" />
-                <p className="group-hover:text-white transition-colors">bireenainfo@gmail.com</p>
+                <p className="group-hover:text-white transition-colors">rasoiroom31@gmail.com</p>
               </div>
             </div>
             {/* Social Links */}
@@ -307,7 +306,7 @@ export const Footer = () => {
             <p className="text-gray-400">
               © {new Date().getFullYear()}{' '}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-bold">
-                BIREENA <span className="font-devanagari">अतिथि</span>
+                Rasoi <span className="font-devanagari">Room</span>
               </span>
               . All rights reserved.{' '}
               Designed & Developed by{' '}
@@ -318,7 +317,7 @@ export const Footer = () => {
                 className="relative inline-block group"
               > */}
                 <span className="relative bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent font-bold group-hover:from-cyan-300 group-hover:to-blue-300 transition-all duration-300">
-                  Bireena Infotech
+                  ELNEB
                 </span>
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400 transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
               {/* </a> */}
