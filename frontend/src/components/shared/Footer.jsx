@@ -304,12 +304,12 @@ export const Footer = () => {
           
           <div className="text-center text-sm">
             <p className="text-gray-400">
-              © {new Date().getFullYear()}{' '}
+              © {' '}
               <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent font-bold">
-                Rasoi <span className="font-devanagari">Room</span>
+                ELNEB <span className="font-devanagari"></span>
               </span>
-              . All rights reserved.{' '}
-              Designed & Developed by{' '}
+              {new Date().getFullYear()}{' '}
+              {/* Designed & Developed by{' '} */}
               {/* <a
                 // href="https://github.com/Mrsaxena01/"
                 target="_blank"
@@ -317,7 +317,7 @@ export const Footer = () => {
                 className="relative inline-block group"
               > */}
                 <span className="relative bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent font-bold group-hover:from-cyan-300 group-hover:to-blue-300 transition-all duration-300">
-                  ELNEB
+                  {/* ELNEB */}
                 </span>
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-cyan-400 to-blue-400 transform scale-x-0 transition-transform duration-300 group-hover:scale-x-100" />
               {/* </a> */}
